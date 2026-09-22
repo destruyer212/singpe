@@ -391,9 +391,15 @@
   // ---------- Arranque: un solo toque desbloquea el audio para toda la noche ----------
   const arranque = document.getElementById("arranque");
   const btnArrancar = document.getElementById("btn-arrancar");
+  const CLAVE_DESBLOQUEO = "singpe_tv_desbloqueado";
 
   function iniciarShow() {
     arranque.remove();
+    try {
+      sessionStorage.setItem(CLAVE_DESBLOQUEO, "1");
+    } catch (e) {
+      /* si el navegador bloquea sessionStorage, no pasa nada grave */
+    }
 
     // "Desbloquea" el audio del navegador con este gesto real del usuario,
     // para que loadVideoById()/play() con sonido ya no se bloqueen después.
@@ -413,5 +419,16 @@
     setInterval(refrescar, 10000);
   }
 
-  btnArrancar.addEventListener("click", iniciarShow, { once: true });
+  let yaDesbloqueado = false;
+  try {
+    yaDesbloqueado = sessionStorage.getItem(CLAVE_DESBLOQUEO) === "1";
+  } catch (e) {
+    /* si el navegador bloquea sessionStorage, simplemente pedimos el toque otra vez */
+  }
+
+  if (yaDesbloqueado) {
+    iniciarShow();
+  } else {
+    btnArrancar.addEventListener("click", iniciarShow, { once: true });
+  }
 })();
