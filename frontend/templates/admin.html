@@ -2,7 +2,26 @@
 {% block title %}Administración · SingPe{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-6 space-y-8">
-  <h1 class="text-2xl font-extrabold text-neon-cyan neon-text">⚙️ Administración</h1>
+  <div class="flex items-center gap-3">
+    <img src="/static/img/singpe-app-icon-white.png" alt="SingPe" class="h-12 w-12 rounded-2xl bg-white object-contain shadow-lg shadow-pink-900/20" />
+    <h1 class="text-2xl font-extrabold text-neon-cyan neon-text">Administración</h1>
+  </div>
+
+  <section class="glass rounded-2xl p-5">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="font-bold">📺 Uso de la API de YouTube hoy</h2>
+        <p id="yt-uso-detalle" class="text-xs text-white/40 mt-0.5">Cargando...</p>
+      </div>
+      <div class="text-right">
+        <div id="yt-uso-numero" class="text-2xl font-extrabold">-</div>
+        <div class="text-xs text-white/40">de ~100 gratis/día</div>
+      </div>
+    </div>
+    <div class="w-full h-2 rounded-full bg-white/10 mt-3 overflow-hidden">
+      <div id="yt-uso-barra" class="h-full rounded-full bg-neon-cyan transition-all" style="width: 0%"></div>
+    </div>
+  </section>
 
   <section class="glass rounded-2xl p-5">
     <h2 class="font-bold mb-3">Reglas del evento</h2>

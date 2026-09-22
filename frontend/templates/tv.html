@@ -9,7 +9,9 @@
 <div class="h-screen w-screen flex flex-col">
 
   <div id="arranque" class="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center text-center px-8 cursor-pointer">
-    <div class="text-8xl mb-6">🎤</div>
+    <div class="mb-5 w-full max-w-md rounded-[2rem] bg-white p-5 shadow-2xl shadow-pink-950/40">
+      <img src="/static/img/singpe-logo-program-white.png" alt="SingPe" class="w-full" />
+    </div>
     <div class="text-4xl font-extrabold text-neon-pink neon-text mb-3">{{ config.nombre_evento }}</div>
     <button id="btn-arrancar" class="mt-4 px-10 py-5 rounded-2xl bg-gradient-to-r from-neon-pink to-neon-purple text-2xl font-bold shadow-lg">
       ▶️ Toca para iniciar la función
@@ -18,7 +20,7 @@
   </div>
 
   <div id="idle" class="flex-1 flex flex-col items-center justify-center text-center px-8">
-    <div class="text-7xl mb-4">🎤</div>
+    <img src="/static/img/singpe-app-icon-white.png" alt="SingPe" class="w-40 h-40 mb-4 rounded-[2rem] bg-white object-contain shadow-2xl shadow-pink-950/40" />
     <div class="text-5xl font-extrabold text-neon-pink neon-text mb-2">{{ config.nombre_evento }}</div>
     <div class="text-white/50 text-xl">Escanea el QR de tu mesa y pide tu canción</div>
     <div id="idle-proximos" class="mt-10 flex flex-wrap gap-3 justify-center max-w-3xl"></div>

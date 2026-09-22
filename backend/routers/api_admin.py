@@ -8,8 +8,18 @@ from backend.library import escanear_biblioteca, registrar_cancion_subida
 from backend.models import Cancion, ConfiguracionSistema, Mesa
 from backend.qr import generar_qr_mesa
 from backend.ws_manager import manager
+from backend.youtube import obtener_uso_hoy
+from backend.config import YOUTUBE_API_KEY
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+@router.get("/youtube-uso")
+def ver_uso_youtube():
+    """Cuántas búsquedas de YouTube se han hecho hoy, contra el límite gratis (~100/día)."""
+    uso = obtener_uso_hoy()
+    uso["disponible"] = bool(YOUTUBE_API_KEY)
+    return uso
 
 
 @router.get("/mesas")

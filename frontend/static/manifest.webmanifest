@@ -1,0 +1,17 @@
+{
+  "name": "SingPe Karaoke",
+  "short_name": "SingPe",
+  "description": "Sistema de karaoke para mesas, DJ y pantalla TV.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0620",
+  "theme_color": "#ff2fb0",
+  "icons": [
+    {
+      "src": "/static/img/singpe-app-icon-white.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

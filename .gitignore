@@ -8,4 +8,5 @@ frontend/static/tts_cache/*.mp3
 *.log
 youtube_api_key.txt
 database_url.txt
+youtube_uso.json
 .firecrawl/

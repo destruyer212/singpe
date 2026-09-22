@@ -7,6 +7,24 @@
   const mesasGrid = document.getElementById("mesas-grid");
   const cancionesTabla = document.getElementById("canciones-tabla");
   const escaneoMsg = document.getElementById("escaneo-msg");
+  const ytUsoNumero = document.getElementById("yt-uso-numero");
+  const ytUsoBarra = document.getElementById("yt-uso-barra");
+  const ytUsoDetalle = document.getElementById("yt-uso-detalle");
+
+  async function cargarUsoYoutube() {
+    const u = await fetch("/api/admin/youtube-uso").then((r) => r.json());
+    if (!u.disponible) {
+      ytUsoNumero.textContent = "–";
+      ytUsoDetalle.textContent = "No hay API key configurada (búsqueda de YouTube desactivada).";
+      ytUsoBarra.style.width = "0%";
+      return;
+    }
+    const pct = Math.min(100, Math.round((u.busquedas / u.limite_estimado) * 100));
+    ytUsoNumero.textContent = u.busquedas;
+    ytUsoDetalle.textContent = `Hoy (${u.fecha}) · se resetea a medianoche hora de California`;
+    ytUsoBarra.style.width = `${pct}%`;
+    ytUsoBarra.className = "h-full rounded-full transition-all " + (pct >= 90 ? "bg-red-500" : pct >= 60 ? "bg-yellow-400" : "bg-neon-cyan");
+  }
 
   async function cargarConfig() {
     const c = await fetch("/api/admin/config").then((r) => r.json());
@@ -113,4 +131,6 @@
   cargarConfig();
   cargarMesas();
   cargarCanciones();
+  cargarUsoYoutube();
+  setInterval(cargarUsoYoutube, 30000);
 })();
