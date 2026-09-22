@@ -5,35 +5,24 @@
   <div class="mx-auto mb-5 w-full max-w-md rounded-[2rem] bg-white p-5 shadow-2xl shadow-pink-950/40">
     <img src="/static/img/singpe-logo-program-white.png" alt="SingPe" class="w-full" />
   </div>
-  <p class="text-white/60 mb-10">Sistema de gestión de karaoke — {{ config.nombre_evento }}</p>
-
-  <div class="grid sm:grid-cols-3 gap-4 mb-12">
-    <a href="/dj" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
-      <div class="text-4xl mb-2">🎧</div>
-      <div class="font-bold">Panel DJ</div>
-      <div class="text-sm text-white/50">Controlar la cola</div>
-    </a>
-    <a href="/tv" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
-      <div class="text-4xl mb-2">📺</div>
-      <div class="font-bold">Pantalla TV</div>
-      <div class="text-sm text-white/50">Proyectar en el local</div>
-    </a>
-    <a href="/admin" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
-      <div class="text-4xl mb-2">⚙️</div>
-      <div class="font-bold">Administración</div>
-      <div class="text-sm text-white/50">Mesas, canciones, reglas</div>
-    </a>
-  </div>
+  <p class="text-white/60 mb-10">Elige tu mesa para pedir canciones — {{ config.nombre_evento }}</p>
 
   {% if mesas %}
-  <h2 class="text-lg font-semibold text-white/70 mb-3">Mesas registradas (acceso directo para pruebas)</h2>
+  <h2 class="text-lg font-semibold text-white/70 mb-3">¿Qué mesa quieres?</h2>
   <div class="flex flex-wrap gap-2 justify-center">
     {% for m in mesas %}
     <a href="/mesa/{{ m.numero }}" class="px-4 py-2 rounded-full glass hover:bg-white/10 text-sm">Mesa {{ m.numero }}</a>
     {% endfor %}
   </div>
   {% else %}
-  <p class="text-white/40 text-sm">Aún no hay mesas. Ve a <a href="/admin" class="underline">Administración</a> para generarlas junto con sus códigos QR.</p>
+  <p class="text-white/40 text-sm">Aún no hay mesas disponibles. Pide al encargado que active las mesas.</p>
   {% endif %}
+  <div class="mt-12 flex justify-center gap-3 text-xs text-white/25">
+    <a href="/dj" class="hover:text-white/60">DJ</a>
+    <span>·</span>
+    <a href="/tv" class="hover:text-white/60">TV</a>
+    <span>·</span>
+    <a href="/admin" class="hover:text-white/60">Admin</a>
+  </div>
 </div>
 {% endblock %}

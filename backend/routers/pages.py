@@ -3,7 +3,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from backend import crud
-from backend.config import TEMPLATES_DIR
+from backend.config import ACCESS_PIN, TEMPLATES_DIR
 from backend.database import get_db
 
 router = APIRouter()
@@ -31,16 +31,16 @@ def pagina_mesa(request: Request, numero: int, db: Session = Depends(get_db)):
 @router.get("/dj")
 def pagina_dj(request: Request, db: Session = Depends(get_db)):
     config = crud.get_config(db)
-    return templates.TemplateResponse("dj.html", {"request": request, "config": config})
+    return templates.TemplateResponse("dj.html", {"request": request, "config": config, "access_pin": ACCESS_PIN})
 
 
 @router.get("/tv")
 def pagina_tv(request: Request, db: Session = Depends(get_db)):
     config = crud.get_config(db)
-    return templates.TemplateResponse("tv.html", {"request": request, "config": config})
+    return templates.TemplateResponse("tv.html", {"request": request, "config": config, "access_pin": ACCESS_PIN})
 
 
 @router.get("/admin")
 def pagina_admin(request: Request, db: Session = Depends(get_db)):
     config = crud.get_config(db)
-    return templates.TemplateResponse("admin.html", {"request": request, "config": config})
+    return templates.TemplateResponse("admin.html", {"request": request, "config": config, "access_pin": ACCESS_PIN})

@@ -21,6 +21,9 @@
   <meta name="theme-color" content="#0b0620" />
   <link rel="stylesheet" href="/static/css/style.css" />
   <script src="/static/js/runtime.js"></script>
+  <script>
+    window.SINGPE_ACCESS_PIN = "{{ access_pin | default('1234') }}";
+  </script>
   {% block head %}{% endblock %}
 </head>
 <body class="min-h-screen bg-gradient-to-br from-[#0b0620] via-[#170a2e] to-[#1a0b30] text-white">

@@ -10,6 +10,7 @@ STATIC_DIR = BASE_DIR / "frontend" / "static"
 OUT_DIR = BASE_DIR / "frontend_vercel_dist"
 
 API_BASE = os.environ.get("SINGPE_API_BASE", "https://singpe.onrender.com").rstrip("/")
+ACCESS_PIN = os.environ.get("SINGPE_ACCESS_PIN", "1234").strip()
 
 
 def read_template(name: str) -> str:
@@ -40,6 +41,7 @@ def shell(title: str, content: str, head: str = "", extra_scripts: str = "") -> 
       }},
     }};
     window.SINGPE_API_BASE = "{API_BASE}";
+    window.SINGPE_ACCESS_PIN = "{ACCESS_PIN}";
   </script>
   <link rel="icon" type="image/png" href="/static/img/singpe-app-icon-white.png" />
   <link rel="manifest" href="/static/manifest.webmanifest" />
@@ -82,29 +84,18 @@ def build_index() -> None:
   <div class="mx-auto mb-5 w-full max-w-md rounded-[2rem] bg-white p-5 shadow-2xl shadow-pink-950/40">
     <img src="/static/img/singpe-logo-program-white.png" alt="SingPe" class="w-full" />
   </div>
-  <p class="text-white/60 mb-10">Sistema de gestión de karaoke — <span id="evento-nombre">SingPe Karaoke</span></p>
+  <p class="text-white/60 mb-10">Elige tu mesa para pedir canciones — <span id="evento-nombre">SingPe Karaoke</span></p>
 
-  <div class="grid sm:grid-cols-3 gap-4 mb-12">
-    <a href="/dj" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
-      <div class="text-4xl mb-2">🎧</div>
-      <div class="font-bold">Panel DJ</div>
-      <div class="text-sm text-white/50">Controlar la cola</div>
-    </a>
-    <a href="/tv" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
-      <div class="text-4xl mb-2">📺</div>
-      <div class="font-bold">Pantalla TV</div>
-      <div class="text-sm text-white/50">Proyectar en el local</div>
-    </a>
-    <a href="/admin" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
-      <div class="text-4xl mb-2">⚙️</div>
-      <div class="font-bold">Administración</div>
-      <div class="text-sm text-white/50">Mesas, canciones, reglas</div>
-    </a>
-  </div>
-
-  <h2 class="text-lg font-semibold text-white/70 mb-3">Mesas registradas</h2>
+  <h2 class="text-lg font-semibold text-white/70 mb-3">¿Qué mesa quieres?</h2>
   <div id="mesas-lista" class="hidden flex flex-wrap gap-2 justify-center"></div>
-  <p id="mesas-vacias" class="text-white/40 text-sm">Aún no hay mesas. Ve a <a href="/admin" class="underline">Administración</a> para generarlas junto con sus códigos QR.</p>
+  <p id="mesas-vacias" class="text-white/40 text-sm">Aún no hay mesas disponibles. Pide al encargado que active las mesas.</p>
+  <div class="mt-12 flex justify-center gap-3 text-xs text-white/25">
+    <a href="/dj" class="hover:text-white/60">DJ</a>
+    <span>·</span>
+    <a href="/tv" class="hover:text-white/60">TV</a>
+    <span>·</span>
+    <a href="/admin" class="hover:text-white/60">Admin</a>
+  </div>
 </div>
 """
     write_page("index.html", "SingPe Karaoke", content, extra_scripts='<script src="/static/js/index.js"></script>')

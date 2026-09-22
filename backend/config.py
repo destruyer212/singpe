@@ -70,6 +70,7 @@ FRONTEND_ORIGINS = [
     for origin in os.environ.get("FRONTEND_ORIGINS", "*").split(",")
     if origin.strip()
 ]
+ACCESS_PIN = os.environ.get("SINGPE_ACCESS_PIN", "1234").strip()
 
 # Reglas de negocio por defecto (editables luego desde /admin).
 SEGUNDOS_ENTRE_PEDIDOS = 60
