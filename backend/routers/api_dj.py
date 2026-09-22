@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from backend import crud
@@ -8,6 +9,40 @@ from backend.tts import generar_audio
 from backend.ws_manager import manager
 
 router = APIRouter(prefix="/api/dj", tags=["dj"])
+
+SONIDOS_VALIDOS = {"aire", "campana", "redoble", "sirena", "error", "fanfarria", "aplausos"}
+
+
+class EfectoIn(BaseModel):
+    sonido: str
+    sticker: str | None = None
+    texto: str | None = None
+
+
+@router.post("/efecto")
+async def disparar_efecto(payload: EfectoIn):
+    """El DJ dispara un efecto de sonido + sticker que aparece un momento en la pantalla TV."""
+    if payload.sonido not in SONIDOS_VALIDOS:
+        raise HTTPException(status_code=400, detail="Sonido no válido")
+    await manager.broadcast(
+        "efecto",
+        {"sonido": payload.sonido, "sticker": payload.sticker, "texto": (payload.texto or "")[:60]},
+    )
+    return {"ok": True}
+
+
+class AnuncioIn(BaseModel):
+    texto: str
+
+
+@router.post("/anuncio")
+async def anuncio_rapido(payload: AnuncioIn):
+    """Anuncio de texto+voz instantáneo del DJ, sin pasar por una solicitud."""
+    texto = (payload.texto or "").strip()[:120]
+    if not texto:
+        raise HTTPException(status_code=400, detail="Texto vacío")
+    await manager.broadcast("anuncio", {"texto": texto})
+    return {"ok": True}
 
 
 @router.get("/tts")

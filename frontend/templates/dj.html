@@ -4,13 +4,22 @@
 <div class="max-w-3xl mx-auto px-4 py-6">
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-extrabold text-neon-cyan neon-text">🎧 Panel DJ</h1>
-    <a href="/tv" target="_blank" class="text-sm glass px-3 py-1.5 rounded-full hover:bg-white/10">📺 Abrir pantalla TV</a>
+    <a href="/tv" target="_blank" class="text-sm glass px-4 py-2 rounded-full hover:bg-white/10 font-semibold transition">📺 Abrir pantalla TV</a>
   </div>
 
-  <h2 class="text-sm font-semibold text-white/50 mb-2">Ahora sonando</h2>
+  <h2 class="text-sm font-semibold text-white/50 mb-2 uppercase tracking-wide">🎛️ Soundboard</h2>
+  <div id="soundboard" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4"></div>
+
+  <div class="glass rounded-2xl p-3 flex gap-2 mb-8">
+    <input id="anuncio-texto" type="text" maxlength="120" placeholder="📢 Anuncio rápido (se lee en voz alta en la TV)..."
+      class="flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-neon-cyan text-sm" />
+    <button id="btn-anuncio" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-cyan to-neon-purple font-bold text-sm hover:opacity-90 transition shrink-0">Anunciar</button>
+  </div>
+
+  <h2 class="text-sm font-semibold text-white/50 mb-2 uppercase tracking-wide">Ahora sonando</h2>
   <div id="ahora-sonando" class="mb-8"></div>
 
-  <h2 class="text-sm font-semibold text-white/50 mb-2">Próximos en la cola</h2>
+  <h2 class="text-sm font-semibold text-white/50 mb-2 uppercase tracking-wide">Próximos en la cola</h2>
   <div id="cola" class="space-y-2"></div>
 </div>
 

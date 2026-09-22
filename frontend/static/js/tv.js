@@ -21,6 +21,11 @@
   const ytError = document.getElementById("yt-error");
   const ytErrorLink = document.getElementById("yt-error-link");
   const infoVotos = document.getElementById("info-votos");
+  const sfxAudio = document.getElementById("sfx-audio");
+  const anuncioAudio = document.getElementById("anuncio-audio");
+  const stickerOverlay = document.getElementById("sticker-overlay");
+  const stickerEmoji = document.getElementById("sticker-emoji");
+  const stickerTexto = document.getElementById("sticker-texto");
   const ranking = document.getElementById("ranking");
   const rankingLista = document.getElementById("ranking-lista");
   const bannerBatalla = document.getElementById("banner-batalla");
@@ -74,6 +79,46 @@
         </div>`;
       })
       .join("");
+  }
+
+  function mostrarEfecto(data) {
+    if (data.sonido) {
+      sfxAudio.src = `/static/sfx/${data.sonido}.wav`;
+      sfxAudio.currentTime = 0;
+      sfxAudio.play().catch(() => {});
+    }
+    if (data.sticker) {
+      stickerEmoji.textContent = data.sticker;
+      stickerTexto.textContent = data.texto || "";
+      stickerTexto.classList.toggle("hidden", !data.texto);
+      stickerOverlay.classList.remove("hidden");
+      stickerEmoji.classList.remove("sticker-pop");
+      void stickerEmoji.offsetWidth; // reinicia la animación si se dispara de nuevo
+      stickerEmoji.classList.add("sticker-pop");
+      setTimeout(() => stickerOverlay.classList.add("hidden"), 2200);
+    }
+  }
+
+  async function mostrarAnuncio(data) {
+    if (!data.texto) return;
+    stickerEmoji.textContent = "📢";
+    stickerTexto.textContent = data.texto;
+    stickerTexto.classList.remove("hidden");
+    stickerOverlay.classList.remove("hidden");
+    stickerEmoji.classList.remove("sticker-pop");
+    void stickerEmoji.offsetWidth;
+    stickerEmoji.classList.add("sticker-pop");
+    setTimeout(() => stickerOverlay.classList.add("hidden"), 4000);
+    try {
+      const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(data.texto)}`);
+      if (res.ok) {
+        const { url } = await res.json();
+        anuncioAudio.src = url;
+        anuncioAudio.play().catch(() => {});
+      }
+    } catch (e) {
+      /* el texto ya quedó visible aunque falle la voz */
+    }
   }
 
   let avisando = false;
@@ -405,7 +450,7 @@
     // para que loadVideoById()/play() con sonido ya no se bloqueen después.
     audio.muted = false;
     video.muted = false;
-    [video, audio].forEach((el) => {
+    [video, audio, sfxAudio, anuncioAudio].forEach((el) => {
       el.play().then(() => el.pause()).catch(() => {});
     });
 
@@ -413,7 +458,17 @@
 
     const wsProtocolo = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${wsProtocolo}://${location.host}/ws`);
-    ws.onmessage = () => refrescar();
+    ws.onmessage = (e) => {
+      let msg;
+      try {
+        msg = JSON.parse(e.data);
+      } catch (err) {
+        return;
+      }
+      if (msg.tipo === "efecto") mostrarEfecto(msg.data || {});
+      else if (msg.tipo === "anuncio") mostrarAnuncio(msg.data || {});
+      else refrescar();
+    };
 
     refrescar();
     setInterval(refrescar, 10000);

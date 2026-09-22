@@ -79,6 +79,14 @@
     <span class="text-xs text-white/40 shrink-0">SIGUIENTES →</span>
     <div id="lista-proximos" class="flex gap-3"></div>
   </div>
+
+  <audio id="sfx-audio"></audio>
+  <audio id="anuncio-audio"></audio>
+
+  <div id="sticker-overlay" class="hidden fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+    <div id="sticker-emoji" class="text-[14rem] drop-shadow-2xl"></div>
+    <div id="sticker-texto" class="absolute bottom-24 left-1/2 -translate-x-1/2 text-4xl font-extrabold text-center px-8 py-3 rounded-2xl bg-black/70 whitespace-nowrap"></div>
+  </div>
 </div>
 
 <script src="/static/js/lrc.js"></script>
