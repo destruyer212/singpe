@@ -110,6 +110,15 @@
     seleccion.classList.add("hidden");
   }
 
+  function quitarSeleccionCompleta() {
+    limpiarSeleccion();
+    cancionInput.value = "";
+    artistaInput.value = "";
+    resultados.innerHTML = "";
+    ytMsg.textContent = "";
+    cancionInput.focus();
+  }
+
   function limpiarFormulario() {
     cancionInput.value = "";
     artistaInput.value = "";
@@ -207,7 +216,7 @@
       .catch(() => {});
   }
 
-  btnQuitarSeleccion.addEventListener("click", limpiarSeleccion);
+  btnQuitarSeleccion.addEventListener("click", quitarSeleccionCompleta);
 
   async function buscarYoutube(q) {
     if (!q) {
