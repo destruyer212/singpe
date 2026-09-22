@@ -1,0 +1,19 @@
+Efectos de sonido del soundboard — fuente y licencia
+
+Todos los archivos .wav de esta carpeta fueron descargados de
+freesoundslibrary.com y recortados con ffmpeg a duración de "stinger".
+
+Licencia: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+Uso libre, comercial o no comercial, con atribución.
+
+Archivos:
+  aire.wav       <- MLG Airhorn Sound Effect
+  aplausos.wav   <- Clapping and Whistling Sound Effect
+  campana.wav    <- Ding Ding Sound Effect
+  error.wav      <- Fail Buzzer Sound Effect
+  fanfarria.wav  <- Reveille Sound Effect
+  redoble.wav    <- Drum Roll Sound Effect
+  sirena.wav     <- Tornado Siren Sound Effect
+
+Atribución: sonidos por freesoundslibrary.com (https://www.freesoundslibrary.com/)
