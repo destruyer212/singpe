@@ -439,6 +439,23 @@
   const btnArrancar = document.getElementById("btn-arrancar");
   const CLAVE_DESBLOQUEO = "singpe_tv_desbloqueado";
 
+  // Amplificador real (Web Audio API): el <audio>/<video> normal tope en
+  // 100% de volumen, pero la voz de edge-tts y los efectos igual se sienten
+  // bajos contra la música. Esto los pasa por una ganancia que puede sonar
+  // más fuerte que el "100%" nativo del navegador.
+  let audioCtx = null;
+  function conectarConGanancia(el, ganancia) {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const fuente = audioCtx.createMediaElementSource(el);
+      const nodoGanancia = audioCtx.createGain();
+      nodoGanancia.gain.value = ganancia;
+      fuente.connect(nodoGanancia).connect(audioCtx.destination);
+    } catch (e) {
+      /* si el navegador no soporta Web Audio API, el audio igual suena a volumen normal */
+    }
+  }
+
   function iniciarShow() {
     arranque.remove();
     try {
@@ -454,6 +471,12 @@
     [video, audio, sfxAudio, anuncioAudio].forEach((el) => {
       el.play().then(() => el.pause()).catch(() => {});
     });
+
+    // La voz (mensajes, "sigues pronto", batallas) suena más floja que la
+    // música, así que le doy más ganancia que a los efectos del soundboard.
+    conectarConGanancia(audioAnuncio, 3.0);
+    conectarConGanancia(anuncioAudio, 3.0);
+    conectarConGanancia(sfxAudio, 1.8);
 
     cargarApiYoutube();
 
