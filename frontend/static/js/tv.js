@@ -235,8 +235,6 @@
     }
   }
 
-  cargarApiYoutube();
-
   // ---------- Carga de una solicitud ----------
   function ocultarTodosLosMedios() {
     video.classList.add("hidden");
@@ -390,10 +388,30 @@
     }
   }
 
-  const wsProtocolo = location.protocol === "https:" ? "wss" : "ws";
-  const ws = new WebSocket(`${wsProtocolo}://${location.host}/ws`);
-  ws.onmessage = () => refrescar();
+  // ---------- Arranque: un solo toque desbloquea el audio para toda la noche ----------
+  const arranque = document.getElementById("arranque");
+  const btnArrancar = document.getElementById("btn-arrancar");
 
-  refrescar();
-  setInterval(refrescar, 10000);
+  function iniciarShow() {
+    arranque.remove();
+
+    // "Desbloquea" el audio del navegador con este gesto real del usuario,
+    // para que loadVideoById()/play() con sonido ya no se bloqueen después.
+    audio.muted = false;
+    video.muted = false;
+    [video, audio].forEach((el) => {
+      el.play().then(() => el.pause()).catch(() => {});
+    });
+
+    cargarApiYoutube();
+
+    const wsProtocolo = location.protocol === "https:" ? "wss" : "ws";
+    const ws = new WebSocket(`${wsProtocolo}://${location.host}/ws`);
+    ws.onmessage = () => refrescar();
+
+    refrescar();
+    setInterval(refrescar, 10000);
+  }
+
+  btnArrancar.addEventListener("click", iniciarShow, { once: true });
 })();
