@@ -206,10 +206,10 @@
     solicitudActualId = s.id;
     finalizando = false;
 
-    infoMesa.textContent = s.mesa.numero;
+    infoMesa.textContent = s.mesa_retada_numero ? `${s.mesa.numero} ⚔️ ${s.mesa_retada_numero}` : s.mesa.numero;
     infoTitulo.textContent = s.cancion_titulo;
     infoArtista.textContent = s.cancion_artista || "";
-    infoCantante.textContent = s.nombre_cantante || "Anónimo";
+    infoCantante.textContent = s.cantantes && s.cantantes.length ? s.cantantes.join(" & ") : s.nombre_cantante || "Anónimo";
     infoMensaje.textContent = s.mensaje ? `💬 ${s.mensaje}` : "";
 
     ocultarTodosLosMedios();

@@ -85,7 +85,15 @@ class Solicitud(Base):
     youtube_alternativas = Column(JSON, nullable=True)
 
     nombre_cantante = Column(String, nullable=True)
+    # Si cantan en grupo, aquí van todos los nombres (["Ana", "Luis"]).
+    # nombre_cantante sigue siendo el principal, para no romper lo que ya lo usa.
+    cantantes = Column(JSON, nullable=True)
     mensaje = Column(String, nullable=True)  # se anuncia/lee al empezar la canción
+
+    votos_fuego = Column(Integer, default=0)  # votos 🔥 del público mientras canta
+    mesa_retada_numero = Column(Integer, nullable=True)  # reto: número de la otra mesa
+    avisada = Column(Boolean, default=False)  # ya se le avisó por voz "sigues pronto"
+
     modo = Column(Enum(ModoCancion), default=ModoCancion.karaoke)
     estado = Column(Enum(EstadoSolicitud), default=EstadoSolicitud.pendiente, index=True)
 

@@ -56,9 +56,12 @@
         </div>
 
         <div>
-          <label class="text-sm font-semibold">Tu nombre <span class="text-white/40 font-normal">(opcional)</span></label>
-          <input id="nombre" type="text" maxlength="60" placeholder="Para que te llamen al cantar"
-            class="w-full mt-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-neon-pink" />
+          <label class="text-sm font-semibold">¿Quién canta? <span class="text-white/40 font-normal">(opcional)</span></label>
+          <div id="cantantes-lista" class="space-y-2 mt-1">
+            <input id="nombre" type="text" maxlength="40" placeholder="Para que te llamen al cantar"
+              class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-neon-pink" />
+          </div>
+          <button type="button" id="btn-agregar-cantante" class="mt-2 text-xs text-neon-cyan hover:underline">🎤🎤 Cantar en dueto/grupo</button>
         </div>
 
         <div>
@@ -66,6 +69,15 @@
           <input id="mensaje" type="text" maxlength="80" placeholder="Ej: Hola a todos :)"
             class="w-full mt-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-neon-pink" />
           <div class="text-right text-xs text-white/30 mt-1">Se lee en voz alta al sonar tu canción · <span id="mensaje-contador">0</span>/80</div>
+        </div>
+
+        <div>
+          <button type="button" id="btn-toggle-reto" class="text-xs text-neon-cyan hover:underline">⚔️ Retar a otra mesa (opcional)</button>
+          <div id="reto-caja" class="hidden mt-2">
+            <label class="text-sm font-semibold">Número de la mesa que retas</label>
+            <input id="mesa-retada" type="number" min="1" placeholder="Ej: 5"
+              class="w-full mt-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-neon-pink" />
+          </div>
         </div>
 
         <div class="relative">

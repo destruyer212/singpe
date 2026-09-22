@@ -17,6 +17,16 @@
     return `<span class="text-yellow-300">✋ Pedido libre (buscar manualmente)</span>`;
   }
 
+  function nombresCantantes(s) {
+    return s.cantantes && s.cantantes.length ? s.cantantes.join(" & ") : s.nombre_cantante || "Anónimo";
+  }
+
+  function retoBadge(s) {
+    return s.mesa_retada_numero
+      ? `<div class="text-xs text-orange-300 mt-0.5">⚔️ Mesa ${s.mesa.numero} reta a Mesa ${s.mesa_retada_numero}</div>`
+      : "";
+  }
+
   function tarjetaActual(s) {
     return `
     <div class="glass rounded-2xl p-5 border border-neon-pink/40">
@@ -24,10 +34,12 @@
         <div>
           <div class="text-xs text-neon-pink flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-neon-pink pulse-dot"></span> EN VIVO · Mesa ${s.mesa.numero}
+            <span class="text-white/40">· 🔥 ${s.votos_fuego || 0}</span>
           </div>
           <div class="text-xl font-bold mt-1">${s.cancion_titulo}</div>
-          <div class="text-white/50 text-sm">${s.cancion_artista || ""}${s.cancion_artista ? " · " : ""}canta ${s.nombre_cantante || "Anónimo"}</div>
+          <div class="text-white/50 text-sm">${s.cancion_artista || ""}${s.cancion_artista ? " · " : ""}canta ${nombresCantantes(s)}</div>
           <div class="text-xs mt-1">${origenBadge(s)}</div>
+          ${retoBadge(s)}
           ${s.mensaje ? `<div class="text-xs text-white/40 mt-1">💬 "${s.mensaje}"</div>` : ""}
         </div>
         <div class="flex gap-2">
@@ -44,8 +56,9 @@
         <div class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">${index + 1}</div>
         <div>
           <div class="font-semibold">${s.cancion_titulo} <span class="text-white/40 font-normal">${s.cancion_artista ? "· " + s.cancion_artista : ""}</span></div>
-          <div class="text-xs text-white/50">Mesa ${s.mesa.numero} · canta ${s.nombre_cantante || "Anónimo"} · ${s.modo === "voz_guia" ? "con voz guía" : "karaoke"}</div>
+          <div class="text-xs text-white/50">Mesa ${s.mesa.numero} · canta ${nombresCantantes(s)} · ${s.modo === "voz_guia" ? "con voz guía" : "karaoke"}</div>
           <div class="text-xs mt-0.5">${origenBadge(s)}</div>
+          ${retoBadge(s)}
         </div>
       </div>
       <div class="flex gap-1">

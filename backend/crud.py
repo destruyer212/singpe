@@ -95,6 +95,11 @@ def historial(db: Session, limit: int = 50) -> list[Solicitud]:
     )
 
 
+def _normalizar_cantantes(cantantes: list[str] | None) -> list[str] | None:
+    limpios = [c.strip()[:40] for c in (cantantes or []) if c and c.strip()]
+    return limpios[:6] or None
+
+
 def crear_solicitud(
     db: Session,
     mesa: Mesa,
@@ -105,7 +110,9 @@ def crear_solicitud(
     cancion_id: int | None = None,
     youtube_video_id: str | None = None,
     youtube_alternativas: list[str] | None = None,
+    cantantes: list[str] | None = None,
     mensaje: str | None = None,
+    mesa_retada_numero: int | None = None,
 ) -> Solicitud:
     config = get_config(db)
 
@@ -167,7 +174,9 @@ def crear_solicitud(
         youtube_video_id=(youtube_video_id or "").strip()[:20] or None,
         youtube_alternativas=[v.strip()[:20] for v in (youtube_alternativas or []) if v and v.strip()][:6] or None,
         nombre_cantante=(nombre_cantante or "").strip()[:60] or f"Mesa {mesa.numero}",
+        cantantes=_normalizar_cantantes(cantantes),
         mensaje=(mensaje or "").strip()[:80] or None,
+        mesa_retada_numero=mesa_retada_numero if mesa_retada_numero and mesa_retada_numero != mesa.numero else None,
         modo=modo,
         estado=EstadoSolicitud.pendiente,
         orden=siguiente_orden,
@@ -261,7 +270,9 @@ def editar_solicitud_de_mesa(
     youtube_video_id: str | None = None,
     youtube_alternativas: list[str] | None = None,
     nombre_cantante: str | None = None,
+    cantantes: list[str] | None = None,
     mensaje: str | None = None,
+    mesa_retada_numero: int | None = None,
 ) -> Solicitud:
     solicitud = _obtener_solicitud_editable_de_mesa(db, mesa_id, solicitud_id)
 
@@ -286,7 +297,12 @@ def editar_solicitud_de_mesa(
     )
     if nombre_cantante:
         solicitud.nombre_cantante = nombre_cantante.strip()[:60] or solicitud.nombre_cantante
+    solicitud.cantantes = _normalizar_cantantes(cantantes)
     solicitud.mensaje = (mensaje or "").strip()[:80] or None
+    numero_mesa = solicitud.mesa.numero
+    solicitud.mesa_retada_numero = (
+        mesa_retada_numero if mesa_retada_numero and mesa_retada_numero != numero_mesa else None
+    )
     solicitud.modo = modo
     # orden y creado_en no se tocan a propósito.
     db.commit()

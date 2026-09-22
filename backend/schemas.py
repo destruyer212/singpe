@@ -42,7 +42,9 @@ class SolicitudCreate(BaseModel):
     youtube_video_id: Optional[str] = None  # se envía si el cliente eligió de la búsqueda de YouTube
     youtube_alternativas: Optional[list[str]] = None  # otras versiones del mismo tema, por si la principal está bloqueada
     nombre_cantante: Optional[str] = ""
+    cantantes: Optional[list[str]] = None  # si cantan en grupo, todos los nombres
     mensaje: Optional[str] = None
+    mesa_retada_numero: Optional[int] = None  # reto a otra mesa
     modo: ModoCancion = ModoCancion.karaoke
 
 
@@ -57,7 +59,11 @@ class SolicitudOut(BaseModel):
     youtube_video_id: Optional[str] = None
     youtube_alternativas: Optional[list[str]] = None
     nombre_cantante: Optional[str] = None
+    cantantes: Optional[list[str]] = None
     mensaje: Optional[str] = None
+    votos_fuego: int = 0
+    mesa_retada_numero: Optional[int] = None
+    avisada: bool = False
     modo: ModoCancion
     estado: EstadoSolicitud
     orden: int

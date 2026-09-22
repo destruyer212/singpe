@@ -25,6 +25,13 @@
   const bannerEdicion = document.getElementById("banner-edicion");
   const btnCancelarEdicion = document.getElementById("btn-cancelar-edicion");
   const btnEnviarTexto = document.getElementById("btn-enviar-texto");
+  const cantantesLista = document.getElementById("cantantes-lista");
+  const btnAgregarCantante = document.getElementById("btn-agregar-cantante");
+  const btnToggleReto = document.getElementById("btn-toggle-reto");
+  const retoCaja = document.getElementById("reto-caja");
+  const mesaRetadaInput = document.getElementById("mesa-retada");
+
+  const MAX_CANTANTES = 4;
 
   let modo = "karaoke";
   let youtubeVideoId = null;
@@ -59,6 +66,44 @@
     mensajeContador.textContent = mensajeInput.value.length;
   });
 
+  function agregarCampoCantante(valor = "") {
+    const actuales = cantantesLista.querySelectorAll("input").length;
+    if (actuales >= MAX_CANTANTES) return;
+    const fila = document.createElement("div");
+    fila.className = "flex gap-2";
+    fila.innerHTML = `
+      <input type="text" maxlength="40" placeholder="Otro cantante..." value="${valor.replace(/"/g, "&quot;")}"
+        class="cantante-extra flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-neon-pink" />
+      <button type="button" class="btn-quitar-cantante w-11 rounded-xl bg-white/10 hover:bg-white/20 text-white/60">✕</button>`;
+    fila.querySelector(".btn-quitar-cantante").addEventListener("click", () => fila.remove());
+    cantantesLista.appendChild(fila);
+  }
+
+  btnAgregarCantante.addEventListener("click", () => agregarCampoCantante());
+
+  function limpiarCantantesExtra() {
+    cantantesLista.querySelectorAll(".cantante-extra").forEach((el) => el.closest("div").remove());
+  }
+
+  function obtenerCantantes() {
+    const nombres = [nombreInput.value.trim()];
+    cantantesLista.querySelectorAll(".cantante-extra").forEach((el) => {
+      if (el.value.trim()) nombres.push(el.value.trim());
+    });
+    return nombres.filter(Boolean);
+  }
+
+  function establecerCantantes(lista) {
+    limpiarCantantesExtra();
+    const nombres = (lista || []).filter(Boolean);
+    nombreInput.value = nombres[0] || "";
+    nombres.slice(1).forEach((n) => agregarCampoCantante(n));
+  }
+
+  btnToggleReto.addEventListener("click", () => {
+    retoCaja.classList.toggle("hidden");
+  });
+
   function limpiarSeleccion() {
     youtubeVideoId = null;
     youtubeAlternativas = [];
@@ -71,6 +116,10 @@
     mensajeInput.value = "";
     mensajeContador.textContent = "0";
     limpiarSeleccion();
+    limpiarCantantesExtra();
+    nombreInput.value = "";
+    retoCaja.classList.add("hidden");
+    mesaRetadaInput.value = "";
     resultados.innerHTML = "";
     ytMsg.textContent = "";
   }
@@ -79,9 +128,16 @@
     editandoId = s.id;
     cancionInput.value = s.cancion_titulo || "";
     artistaInput.value = s.cancion_artista || "";
-    nombreInput.value = s.nombre_cantante || "";
+    establecerCantantes(s.cantantes && s.cantantes.length ? s.cantantes : [s.nombre_cantante]);
     mensajeInput.value = s.mensaje || "";
     mensajeContador.textContent = (s.mensaje || "").length;
+    if (s.mesa_retada_numero) {
+      retoCaja.classList.remove("hidden");
+      mesaRetadaInput.value = s.mesa_retada_numero;
+    } else {
+      retoCaja.classList.add("hidden");
+      mesaRetadaInput.value = "";
+    }
     youtubeVideoId = s.youtube_video_id || null;
     youtubeAlternativas = s.youtube_alternativas || [];
     if (youtubeVideoId) {
@@ -220,6 +276,9 @@
       ? `/api/mesas/${numero}/solicitudes/${editandoId}/editar`
       : `/api/mesas/${numero}/solicitudes`;
 
+    const cantantes = obtenerCantantes();
+    const mesaRetada = parseInt(mesaRetadaInput.value, 10);
+
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -228,8 +287,10 @@
         cancion_artista: artistaInput.value.trim() || null,
         youtube_video_id: youtubeVideoId,
         youtube_alternativas: youtubeAlternativas,
-        nombre_cantante: nombreInput.value.trim(),
+        nombre_cantante: cantantes[0] || "",
+        cantantes: cantantes.length > 1 ? cantantes : null,
         mensaje: mensajeInput.value.trim() || null,
+        mesa_retada_numero: Number.isInteger(mesaRetada) && mesaRetada > 0 ? mesaRetada : null,
         modo,
       }),
     });
@@ -279,11 +340,13 @@
     miCola.innerHTML = data
       .map((s) => {
         const editable = s.estado === "pendiente";
+        const cantantesTexto = s.cantantes && s.cantantes.length ? s.cantantes.join(" & ") : s.nombre_cantante || "";
+        const retoTexto = s.mesa_retada_numero ? ` · ⚔️ vs Mesa ${s.mesa_retada_numero}` : "";
         return `
       <div class="glass rounded-xl p-3 flex items-center justify-between gap-2">
         <div class="min-w-0">
           <div class="font-semibold truncate">${s.cancion_titulo}</div>
-          <div class="text-xs text-white/50 truncate">${s.cancion_artista || ""}${s.cancion_artista ? " · " : ""}${s.nombre_cantante || ""}</div>
+          <div class="text-xs text-white/50 truncate">${s.cancion_artista || ""}${s.cancion_artista ? " · " : ""}${cantantesTexto}${retoTexto}</div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <span class="text-xs">${ICONOS_ESTADO[s.estado] || s.estado}</span>

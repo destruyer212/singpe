@@ -52,7 +52,9 @@ async def crear_solicitud(numero: int, payload: SolicitudCreate, db: Session = D
             cancion_id=payload.cancion_id,
             youtube_video_id=payload.youtube_video_id,
             youtube_alternativas=payload.youtube_alternativas,
+            cantantes=payload.cantantes,
             mensaje=payload.mensaje,
+            mesa_retada_numero=payload.mesa_retada_numero,
         )
     except crud.ReglaRechazada as e:
         raise HTTPException(
@@ -79,7 +81,9 @@ async def editar_solicitud(numero: int, solicitud_id: int, payload: SolicitudCre
             youtube_video_id=payload.youtube_video_id,
             youtube_alternativas=payload.youtube_alternativas,
             nombre_cantante=payload.nombre_cantante,
+            cantantes=payload.cantantes,
             mensaje=payload.mensaje,
+            mesa_retada_numero=payload.mesa_retada_numero,
         )
     except crud.ReglaRechazada as e:
         raise HTTPException(status_code=400, detail={"motivo": e.motivo})
