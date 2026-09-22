@@ -82,40 +82,82 @@
       .join("");
   }
 
+  function mostrarTextoGrande(emoji, texto, duracionMs = 4000) {
+    if (!texto) return;
+    stickerEmoji.textContent = emoji;
+    stickerTexto.textContent = texto;
+    stickerTexto.classList.remove("hidden");
+    stickerOverlay.classList.remove("hidden");
+    stickerEmoji.classList.remove("sticker-pop");
+    void stickerEmoji.offsetWidth; // reinicia la animación si se dispara de nuevo
+    stickerEmoji.classList.add("sticker-pop");
+    setTimeout(() => stickerOverlay.classList.add("hidden"), duracionMs);
+  }
+
+  // ---------- Ducking: baja la música mientras habla la voz, como en radio ----------
+  const VOLUMEN_DUCK = 0.22;
+  let vecesHablando = 0;
+
+  function bajarMusica() {
+    vecesHablando++;
+    video.volume = VOLUMEN_DUCK;
+    audio.volume = VOLUMEN_DUCK;
+    if (ytPlayer && ytListo) {
+      try {
+        ytPlayer.setVolume(Math.round(VOLUMEN_DUCK * 100));
+      } catch (e) {
+        /* si el iframe todavía no está listo, no pasa nada */
+      }
+    }
+  }
+
+  function subirMusica() {
+    vecesHablando = Math.max(0, vecesHablando - 1);
+    if (vecesHablando > 0) return; // sigue hablando otra voz encimada, no restaurar todavía
+    video.volume = 1;
+    audio.volume = 1;
+    if (ytPlayer && ytListo) {
+      try {
+        ytPlayer.setVolume(100);
+      } catch (e) {
+        /* nada que hacer */
+      }
+    }
+  }
+
+  function reproducirConDucking(elementoAudio, url) {
+    bajarMusica();
+    let yaRestaurado = false;
+    const restaurarUnaVez = () => {
+      if (yaRestaurado) return;
+      yaRestaurado = true;
+      subirMusica();
+    };
+    elementoAudio.onended = restaurarUnaVez;
+    elementoAudio.onerror = restaurarUnaVez;
+    elementoAudio.src = url;
+    elementoAudio.play().catch(restaurarUnaVez);
+    // Respaldo por si 'ended' no dispara (ej. el navegador bloqueó el play): máx. 12s con la música baja.
+    setTimeout(restaurarUnaVez, 12000);
+  }
+
   function mostrarEfecto(data) {
     if (data.sonido) {
       sfxAudio.src = `/static/sfx/${data.sonido}.wav`;
       sfxAudio.currentTime = 0;
       sfxAudio.play().catch(() => {});
     }
-    if (data.sticker) {
-      stickerEmoji.textContent = data.sticker;
-      stickerTexto.textContent = data.texto || "";
-      stickerTexto.classList.toggle("hidden", !data.texto);
-      stickerOverlay.classList.remove("hidden");
-      stickerEmoji.classList.remove("sticker-pop");
-      void stickerEmoji.offsetWidth; // reinicia la animación si se dispara de nuevo
-      stickerEmoji.classList.add("sticker-pop");
-      setTimeout(() => stickerOverlay.classList.add("hidden"), 2200);
-    }
+    if (data.sticker) mostrarTextoGrande(data.sticker, data.texto || "", 2200);
   }
 
   async function mostrarAnuncio(data) {
     if (!data.texto) return;
-    stickerEmoji.textContent = "📢";
-    stickerTexto.textContent = data.texto;
-    stickerTexto.classList.remove("hidden");
-    stickerOverlay.classList.remove("hidden");
-    stickerEmoji.classList.remove("sticker-pop");
-    void stickerEmoji.offsetWidth;
-    stickerEmoji.classList.add("sticker-pop");
-    setTimeout(() => stickerOverlay.classList.add("hidden"), 4000);
+    mostrarTextoGrande("📢", data.texto, 4000);
     try {
       const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(data.texto)}`);
       if (res.ok) {
         const { url } = await res.json();
-        anuncioAudio.src = window.singpeUrl ? window.singpeUrl(url) : url;
-        anuncioAudio.play().catch(() => {});
+        reproducirConDucking(anuncioAudio, window.singpeUrl ? window.singpeUrl(url) : url);
       }
     } catch (e) {
       /* el texto ya quedó visible aunque falle la voz */
@@ -133,7 +175,7 @@
     if (!siguiente || siguiente.avisada) return;
 
     avisando = true;
-    await decirMensaje(`Mesa ${siguiente.mesa.numero}, prepárate, ¡sigues pronto!`);
+    await decirMensaje(`Mesa ${siguiente.mesa.numero}, prepárate, ¡sigues pronto!`, "⏰");
     await fetch(`/api/dj/solicitudes/${siguiente.id}/avisar`, { method: "POST" });
     avisando = false;
   }
@@ -144,7 +186,8 @@
     if (solicitudActualDatos && solicitudActualDatos.id === id && solicitudActualDatos.mesa_retada_numero) {
       const votos = solicitudActualDatos.votos_fuego || 0;
       await decirMensaje(
-        `¡Fin de la batalla! Mesa ${solicitudActualDatos.mesa.numero} sacó ${votos} fuegos. Mesa ${solicitudActualDatos.mesa_retada_numero}, ¡te toca responder!`
+        `¡Fin de la batalla! Mesa ${solicitudActualDatos.mesa.numero} sacó ${votos} fuegos. Mesa ${solicitudActualDatos.mesa_retada_numero}, ¡te toca responder!`,
+        "🏆"
       );
     }
     await fetch(`/api/dj/solicitudes/${id}/finalizar`, { method: "POST" });
@@ -201,16 +244,16 @@
 
   const audioAnuncio = new Audio();
 
-  async function decirMensaje(texto) {
+  async function decirMensaje(texto, emoji = "🗣️") {
     if (!texto) return;
+    mostrarTextoGrande(emoji, texto, 4000);
     try {
       const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(texto)}`);
       if (!res.ok) throw new Error("tts no disponible");
       const { url } = await res.json();
-      audioAnuncio.src = window.singpeUrl ? window.singpeUrl(url) : url;
-      audioAnuncio.play().catch(() => {});
+      reproducirConDucking(audioAnuncio, window.singpeUrl ? window.singpeUrl(url) : url);
     } catch (e) {
-      // Si falla el servicio de voz, el mensaje igual queda visible en pantalla.
+      // Si falla el servicio de voz, el mensaje igual queda visible en pantalla grande.
     }
   }
 
@@ -320,7 +363,7 @@
       bannerBatalla.classList.add("block");
       batallaReta.textContent = s.mesa.numero;
       batallaRetada.textContent = s.mesa_retada_numero;
-      decirMensaje(`¡Batalla! Mesa ${s.mesa.numero} reta a la mesa ${s.mesa_retada_numero}. ¡Voten con el botón de fuego!`);
+      decirMensaje(`¡Batalla! Mesa ${s.mesa.numero} reta a la mesa ${s.mesa_retada_numero}. ¡Voten con el botón de fuego!`, "⚔️");
     } else {
       bannerBatalla.classList.add("hidden");
       bannerBatalla.classList.remove("block");
@@ -363,7 +406,7 @@
       manualFondo.classList.add("flex");
     }
 
-    if (!s.mesa_retada_numero) decirMensaje(s.mensaje);
+    if (!s.mesa_retada_numero) decirMensaje(s.mensaje, "💬");
   }
 
   function actualizarLetras(tiempoActual) {
