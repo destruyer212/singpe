@@ -13,6 +13,10 @@
     <div class="text-5xl font-extrabold text-neon-pink neon-text mb-2">{{ config.nombre_evento }}</div>
     <div class="text-white/50 text-xl">Escanea el QR de tu mesa y pide tu canción</div>
     <div id="idle-proximos" class="mt-10 flex flex-wrap gap-3 justify-center max-w-3xl"></div>
+    <div id="ranking" class="hidden mt-10 max-w-md w-full">
+      <div class="text-neon-yellow text-sm font-bold uppercase tracking-widest mb-2">🏆 Ranking de la noche</div>
+      <div id="ranking-lista" class="space-y-2"></div>
+    </div>
   </div>
 
   <div id="reproductor" class="hidden flex-1 relative bg-black">

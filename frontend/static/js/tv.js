@@ -21,6 +21,8 @@
   const ytError = document.getElementById("yt-error");
   const ytErrorLink = document.getElementById("yt-error-link");
   const infoVotos = document.getElementById("info-votos");
+  const ranking = document.getElementById("ranking");
+  const rankingLista = document.getElementById("ranking-lista");
 
   let solicitudActualId = null;
   let lineasLrc = [];
@@ -41,6 +43,32 @@
     if (pendientes.length > 0) {
       await fetch(`/api/dj/solicitudes/${pendientes[0].id}/iniciar`, { method: "POST" });
     }
+  }
+
+  const MEDALLAS = ["🥇", "🥈", "🥉"];
+
+  async function actualizarRanking() {
+    const datos = await fetch("/api/dj/ranking").then((r) => r.json());
+    if (!datos.length) {
+      ranking.classList.add("hidden");
+      return;
+    }
+    ranking.classList.remove("hidden");
+    rankingLista.innerHTML = datos
+      .slice(0, 3)
+      .map((r, i) => {
+        const insignia = i === 0 ? "🔥 Más ovacionada" : r.canciones >= 3 ? "🎤 Maratónica" : "";
+        return `
+        <div class="glass rounded-xl px-4 py-2 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">${MEDALLAS[i] || "🎖️"}</span>
+            <span class="font-bold">Mesa ${r.mesa}</span>
+            ${insignia ? `<span class="text-xs text-neon-yellow">${insignia}</span>` : ""}
+          </div>
+          <div class="text-sm text-white/50">🎵 ${r.canciones} · 🔥 ${r.votos}</div>
+        </div>`;
+      })
+      .join("");
   }
 
   let avisando = false;
@@ -299,6 +327,7 @@
       solicitudActualId = null;
       idleProximos.innerHTML = cola.slice(0, 6).map(chip).join("") ||
         `<div class="text-white/30 text-sm">La cola está vacía por ahora</div>`;
+      actualizarRanking();
 
       // Nadie está cantando pero hay gente esperando: arranca sola la primera.
       const hayPendientes = cola.some((s) => s.estado === "pendiente");

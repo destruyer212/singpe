@@ -37,6 +37,12 @@ def ver_historial(db: Session = Depends(get_db)):
     return crud.historial(db)
 
 
+@router.get("/ranking")
+def ver_ranking(db: Session = Depends(get_db)):
+    """Ranking de la noche: mesas con más canciones cantadas y más votos 🔥."""
+    return crud.ranking_de_la_noche(db)
+
+
 @router.post("/solicitudes/{solicitud_id}/iniciar", response_model=SolicitudOut)
 async def iniciar(solicitud_id: int, db: Session = Depends(get_db)):
     try:

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from backend.models import (
@@ -348,3 +348,22 @@ def mover_solicitud(db: Session, solicitud_id: int, direccion: str) -> None:
         return
     cola[idx].orden, cola[vecino].orden = cola[vecino].orden, cola[idx].orden
     db.commit()
+
+
+def ranking_de_la_noche(db: Session) -> list[dict]:
+    """Ranking del día en curso: canciones cantadas y votos 🔥 recibidos por mesa."""
+    desde = datetime.combine(datetime.utcnow().date(), datetime.min.time())
+    filas = (
+        db.query(
+            Mesa.numero,
+            func.count(Solicitud.id).label("canciones"),
+            func.coalesce(func.sum(Solicitud.votos_fuego), 0).label("votos"),
+        )
+        .join(Solicitud, Solicitud.mesa_id == Mesa.id)
+        .filter(Solicitud.estado == EstadoSolicitud.finalizada, Solicitud.creado_en >= desde)
+        .group_by(Mesa.numero)
+        .all()
+    )
+    ranking = [{"mesa": f.numero, "canciones": f.canciones, "votos": f.votos} for f in filas]
+    ranking.sort(key=lambda r: (r["votos"], r["canciones"]), reverse=True)
+    return ranking
