@@ -3,13 +3,21 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-LIBRARY_DIR = BASE_DIR / "karaoke_library"
 FRONTEND_DIR = BASE_DIR / "frontend"
 TEMPLATES_DIR = FRONTEND_DIR / "templates"
 STATIC_DIR = FRONTEND_DIR / "static"
-QR_DIR = STATIC_DIR / "qr"
 YOUTUBE_API_KEY_FILE = BASE_DIR / "youtube_api_key.txt"
 DATABASE_URL_FILE = BASE_DIR / "database_url.txt"
+DATA_DIR = Path(os.environ["SINGPE_DATA_DIR"]) if os.environ.get("SINGPE_DATA_DIR") else None
+
+if DATA_DIR:
+    LIBRARY_DIR = DATA_DIR / "karaoke_library"
+    QR_DIR = DATA_DIR / "qr"
+    TTS_CACHE_DIR = DATA_DIR / "tts_cache"
+else:
+    LIBRARY_DIR = BASE_DIR / "karaoke_library"
+    QR_DIR = STATIC_DIR / "qr"
+    TTS_CACHE_DIR = STATIC_DIR / "tts_cache"
 
 
 def _cargar_database_url() -> str:
@@ -18,6 +26,10 @@ def _cargar_database_url() -> str:
     API key de YouTube: fácil de pegar sin tocar código)."""
     env_url = os.environ.get("DATABASE_URL", "").strip()
     if env_url:
+        if env_url.startswith("postgres://"):
+            return env_url.replace("postgres://", "postgresql+psycopg2://", 1)
+        if env_url.startswith("postgresql://"):
+            return env_url.replace("postgresql://", "postgresql+psycopg2://", 1)
         return env_url
     if DATABASE_URL_FILE.exists():
         archivo_url = DATABASE_URL_FILE.read_text(encoding="utf-8").strip()
@@ -50,9 +62,9 @@ def _cargar_youtube_api_key() -> str:
 YOUTUBE_API_KEY = _cargar_youtube_api_key()
 
 # URL base usada para generar los códigos QR de cada mesa.
-# Cambiar por la IP/dominio real del local cuando se despliegue
-# (ej. "http://192.168.1.50:8000" o "https://karaoke.mibar.com").
-BASE_URL = "http://localhost:8000"
+# En Render se toma automáticamente de BASE_URL, por ejemplo:
+# https://singpe.onrender.com
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000").rstrip("/")
 
 # Reglas de negocio por defecto (editables luego desde /admin).
 SEGUNDOS_ENTRE_PEDIDOS = 60
@@ -61,3 +73,4 @@ PUNTOS_POR_CANCION = 10
 
 LIBRARY_DIR.mkdir(parents=True, exist_ok=True)
 QR_DIR.mkdir(parents=True, exist_ok=True)
+TTS_CACHE_DIR.mkdir(parents=True, exist_ok=True)

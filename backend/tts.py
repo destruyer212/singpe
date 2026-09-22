@@ -9,14 +9,14 @@ import hashlib
 
 import edge_tts
 
-from backend.config import STATIC_DIR
+from backend.config import TTS_CACHE_DIR
 
 VOZ_POR_DEFECTO = "es-PE-AlexNeural"  # cambiar por es-PE-CamilaNeural, es-MX-DaliaNeural, etc.
 # Un toque de energía tipo animador de fiesta: más rápido y un poco más agudo
 # que la voz plana por defecto, para que suene "retador" y no monótono.
 RITMO_POR_DEFECTO = "+12%"
 TONO_POR_DEFECTO = "+4Hz"
-CACHE_DIR = STATIC_DIR / "tts_cache"
+CACHE_DIR = TTS_CACHE_DIR
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 

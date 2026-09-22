@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: singpe
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: BASE_URL
+        value: https://singpe.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: singpe-db
+          property: connectionString
+      - key: YOUTUBE_API_KEY
+        sync: false
+      # Paid Render services can attach a persistent disk and enable this:
+      # - key: SINGPE_DATA_DIR
+      #   value: /var/data
+
+databases:
+  - name: singpe-db
+    plan: free
+    databaseName: singpe
+    user: singpe

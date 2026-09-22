@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from backend.config import LIBRARY_DIR, STATIC_DIR
+from backend.config import LIBRARY_DIR, QR_DIR, STATIC_DIR, TTS_CACHE_DIR
 from backend.database import Base, SessionLocal, engine
 from backend.routers import api_admin, api_dj, api_mesas, pages, ws
 
@@ -9,6 +9,8 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SingPe Karaoke")
 
+app.mount("/static/qr", StaticFiles(directory=str(QR_DIR)), name="qr")
+app.mount("/static/tts_cache", StaticFiles(directory=str(TTS_CACHE_DIR)), name="tts_cache")
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/media", StaticFiles(directory=str(LIBRARY_DIR)), name="media")
 
@@ -28,3 +30,8 @@ def seed_config():
         crud.get_config(db)
     finally:
         db.close()
+
+
+@app.get("/health")
+def health():
+    return {"ok": True, "app": "SingPe Karaoke"}
