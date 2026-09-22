@@ -10,4 +10,5 @@ youtube_api_key.txt
 database_url.txt
 youtube_uso.json
 .firecrawl/
+.claude/
 frontend_vercel_dist/
