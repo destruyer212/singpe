@@ -23,6 +23,11 @@
   const infoVotos = document.getElementById("info-votos");
   const ranking = document.getElementById("ranking");
   const rankingLista = document.getElementById("ranking-lista");
+  const bannerBatalla = document.getElementById("banner-batalla");
+  const batallaReta = document.getElementById("batalla-reta");
+  const batallaRetada = document.getElementById("batalla-retada");
+
+  let solicitudActualDatos = null;
 
   let solicitudActualId = null;
   let lineasLrc = [];
@@ -90,6 +95,12 @@
   async function marcarFinalizada(id) {
     if (finalizando) return;
     finalizando = true;
+    if (solicitudActualDatos && solicitudActualDatos.id === id && solicitudActualDatos.mesa_retada_numero) {
+      const votos = solicitudActualDatos.votos_fuego || 0;
+      await decirMensaje(
+        `¡Fin de la batalla! Mesa ${solicitudActualDatos.mesa.numero} sacó ${votos} fuegos. Mesa ${solicitudActualDatos.mesa_retada_numero}, ¡te toca responder!`
+      );
+    }
     await fetch(`/api/dj/solicitudes/${id}/finalizar`, { method: "POST" });
     await avanzarSiguiente();
     finalizando = false;
@@ -231,6 +242,7 @@
     video.classList.add("hidden");
     video.pause();
     ytContenedor.classList.add("hidden");
+    bannerBatalla.classList.add("hidden");
     audioFondo.classList.add("hidden");
     audioFondo.classList.remove("flex");
     manualFondo.classList.add("hidden");
@@ -249,14 +261,26 @@
 
   function cargarCancion(s) {
     solicitudActualId = s.id;
+    solicitudActualDatos = s;
     finalizando = false;
 
-    infoMesa.textContent = s.mesa_retada_numero ? `${s.mesa.numero} ⚔️ ${s.mesa_retada_numero}` : s.mesa.numero;
+    infoMesa.textContent = s.mesa.numero;
     infoTitulo.textContent = s.cancion_titulo;
     infoArtista.textContent = s.cancion_artista || "";
     infoCantante.textContent = s.cantantes && s.cantantes.length ? s.cantantes.join(" & ") : s.nombre_cantante || "Anónimo";
     infoMensaje.textContent = s.mensaje ? `💬 ${s.mensaje}` : "";
     infoVotos.textContent = `🔥 ${s.votos_fuego || 0}`;
+
+    if (s.mesa_retada_numero) {
+      bannerBatalla.classList.remove("hidden");
+      bannerBatalla.classList.add("block");
+      batallaReta.textContent = s.mesa.numero;
+      batallaRetada.textContent = s.mesa_retada_numero;
+      decirMensaje(`¡Batalla! Mesa ${s.mesa.numero} reta a la mesa ${s.mesa_retada_numero}. ¡Voten con el botón de fuego!`);
+    } else {
+      bannerBatalla.classList.add("hidden");
+      bannerBatalla.classList.remove("block");
+    }
 
     ocultarTodosLosMedios();
     lineasLrc = [];
@@ -295,7 +319,7 @@
       manualFondo.classList.add("flex");
     }
 
-    decirMensaje(s.mensaje);
+    if (!s.mesa_retada_numero) decirMensaje(s.mensaje);
   }
 
   function actualizarLetras(tiempoActual) {
@@ -325,6 +349,7 @@
       barraProximos.classList.add("hidden");
       if (solicitudActualId) ocultarTodosLosMedios();
       solicitudActualId = null;
+      solicitudActualDatos = null;
       idleProximos.innerHTML = cola.slice(0, 6).map(chip).join("") ||
         `<div class="text-white/30 text-sm">La cola está vacía por ahora</div>`;
       actualizarRanking();
@@ -348,6 +373,9 @@
       infoVotos.textContent = `🔥 ${actual.votos_fuego || 0}`;
       infoVotos.classList.add("scale-125");
       setTimeout(() => infoVotos.classList.remove("scale-125"), 200);
+    }
+    if (solicitudActualDatos && solicitudActualDatos.id === actual.id) {
+      solicitudActualDatos.votos_fuego = actual.votos_fuego;
     }
 
     avisarSiLeToca(cola, actual);
