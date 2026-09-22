@@ -1,6 +1,7 @@
 (() => {
-  const numero = document.currentScript.dataset.numero;
-  const esperaSegundos = parseInt(document.currentScript.dataset.espera || "60", 10);
+  const numero = document.currentScript.dataset.numero || location.pathname.match(/\/mesa\/(\d+)/)?.[1] || "1";
+  let esperaSegundos = parseInt(document.currentScript.dataset.espera || "60", 10);
+  document.querySelectorAll(".mesa-numero-text").forEach((el) => (el.textContent = numero));
 
   const cancionInput = document.getElementById("cancion");
   const artistaInput = document.getElementById("artista");
@@ -449,8 +450,7 @@
     }
   });
 
-  const wsProtocolo = location.protocol === "https:" ? "wss" : "ws";
-  const ws = new WebSocket(`${wsProtocolo}://${location.host}/ws`);
+  const ws = new WebSocket(window.singpeWsUrl ? window.singpeWsUrl("/ws") : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
   ws.onmessage = () => {
     cargarMiCola();
     actualizarGauge();
@@ -474,4 +474,11 @@
   cargarMesasParaReto();
   cargarMiCola();
   actualizarGauge();
+
+  fetch("/api/admin/config")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((config) => {
+      if (config?.segundos_entre_pedidos) esperaSegundos = config.segundos_entre_pedidos;
+    })
+    .catch(() => {});
 })();

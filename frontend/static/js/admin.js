@@ -55,7 +55,7 @@
       .map(
         (m) => `
       <div class="glass rounded-xl p-3 text-center ${m.activo ? "" : "opacity-50"}">
-        <img src="${m.qr}" class="w-full aspect-square object-contain bg-white rounded-lg mb-2" onerror="this.style.display='none'" />
+        <img src="${window.singpeUrl ? window.singpeUrl(m.qr) : m.qr}" class="w-full aspect-square object-contain bg-white rounded-lg mb-2" onerror="this.style.display='none'" />
         <div class="font-bold">Mesa ${m.numero}</div>
         <div class="text-xs text-white/40">${m.puntos} pts</div>
         <div class="flex items-center justify-center gap-1 mt-1 text-xs text-white/50">
@@ -66,7 +66,7 @@
           class="btn-toggle-activo mt-2 w-full text-xs py-1.5 rounded-lg font-semibold ${m.activo ? "bg-green-600/30 text-green-300 hover:bg-red-600/30 hover:text-red-300" : "bg-red-600/30 text-red-300 hover:bg-green-600/30 hover:text-green-300"}">
           ${m.activo ? "✓ Activa" : "✕ Inactiva"}
         </button>
-        <a href="${m.qr}" download class="block mt-1 text-xs underline text-neon-cyan">Descargar QR</a>
+        <a href="${window.singpeUrl ? window.singpeUrl(m.qr) : m.qr}" download class="block mt-1 text-xs underline text-neon-cyan">Descargar QR</a>
       </div>`
       )
       .join("");

@@ -65,6 +65,11 @@ YOUTUBE_API_KEY = _cargar_youtube_api_key()
 # En Render se toma automáticamente de BASE_URL, por ejemplo:
 # https://singpe.onrender.com
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000").rstrip("/")
+FRONTEND_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("FRONTEND_ORIGINS", "*").split(",")
+    if origin.strip()
+]
 
 # Reglas de negocio por defecto (editables luego desde /admin).
 SEGUNDOS_ENTRE_PEDIDOS = 60

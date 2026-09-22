@@ -1,0 +1,11 @@
+{
+  "buildCommand": "python scripts/build_vercel_frontend.py",
+  "outputDirectory": "frontend_vercel_dist",
+  "installCommand": "",
+  "rewrites": [
+    { "source": "/mesa/:numero", "destination": "/mesa.html" },
+    { "source": "/dj", "destination": "/dj.html" },
+    { "source": "/tv", "destination": "/tv.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ]
+}

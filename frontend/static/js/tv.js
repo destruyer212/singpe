@@ -40,7 +40,8 @@
   let manejandoError = false;
 
   function urlMedia(carpeta, archivo) {
-    return encodeURI(`/media/${carpeta}/${archivo}`);
+    const path = encodeURI(`/media/${carpeta}/${archivo}`);
+    return window.singpeUrl ? window.singpeUrl(path) : path;
   }
 
   function chip(s) {
@@ -113,7 +114,7 @@
       const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(data.texto)}`);
       if (res.ok) {
         const { url } = await res.json();
-        anuncioAudio.src = url;
+        anuncioAudio.src = window.singpeUrl ? window.singpeUrl(url) : url;
         anuncioAudio.play().catch(() => {});
       }
     } catch (e) {
@@ -206,7 +207,7 @@
       const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(texto)}`);
       if (!res.ok) throw new Error("tts no disponible");
       const { url } = await res.json();
-      audioAnuncio.src = url;
+      audioAnuncio.src = window.singpeUrl ? window.singpeUrl(url) : url;
       audioAnuncio.play().catch(() => {});
     } catch (e) {
       // Si falla el servicio de voz, el mensaje igual queda visible en pantalla.
@@ -456,8 +457,7 @@
 
     cargarApiYoutube();
 
-    const wsProtocolo = location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${wsProtocolo}://${location.host}/ws`);
+    const ws = new WebSocket(window.singpeWsUrl ? window.singpeWsUrl("/ws") : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
     ws.onmessage = (e) => {
       let msg;
       try {

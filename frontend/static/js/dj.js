@@ -155,8 +155,7 @@
     if (e.key === "Enter") btnAnuncio.click();
   });
 
-  const wsProtocolo = location.protocol === "https:" ? "wss" : "ws";
-  const ws = new WebSocket(`${wsProtocolo}://${location.host}/ws`);
+  const ws = new WebSocket(window.singpeWsUrl ? window.singpeWsUrl("/ws") : `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
   ws.onmessage = () => cargar();
 
   cargar();
