@@ -385,6 +385,9 @@
   });
 
   const MAX_DOTS = 8;
+  const btnVotoFuego = document.getElementById("btn-voto-fuego");
+  const votoFuegoContador = document.getElementById("voto-fuego-contador");
+
   async function actualizarGauge() {
     const data = await fetch("/api/mesas/estado").then((r) => r.json());
     const n = data.en_cola || 0;
@@ -393,7 +396,22 @@
       `<span class="w-1.5 h-1.5 rounded-full ${i < llenos ? "bg-neon-pink" : "bg-white/15"}"></span>`
     ).join("");
     gaugeTexto.textContent = `${n}/${MAX_DOTS}`;
+
+    // El botón de voto 🔥 solo aparece si OTRA mesa está cantando ahora.
+    const hayShowAjeno = data.cantando_mesa && data.cantando_mesa !== parseInt(numero, 10);
+    btnVotoFuego.classList.toggle("hidden", !hayShowAjeno);
+    if (hayShowAjeno) votoFuegoContador.textContent = data.cantando_votos || 0;
   }
+
+  btnVotoFuego.addEventListener("click", async () => {
+    btnVotoFuego.classList.add("scale-110");
+    setTimeout(() => btnVotoFuego.classList.remove("scale-110"), 150);
+    const res = await fetch("/api/dj/actual/votar", { method: "POST" });
+    if (res.ok) {
+      const s = await res.json();
+      votoFuegoContador.textContent = s.votos_fuego;
+    }
+  });
 
   const wsProtocolo = location.protocol === "https:" ? "wss" : "ws";
   const ws = new WebSocket(`${wsProtocolo}://${location.host}/ws`);

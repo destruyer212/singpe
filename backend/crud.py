@@ -204,6 +204,17 @@ def iniciar_solicitud(db: Session, solicitud_id: int) -> Solicitud:
     return solicitud
 
 
+def votar_actual(db: Session) -> Solicitud:
+    """Suma un voto 🔥 del público a quien está cantando ahora mismo."""
+    actual = obtener_cantando(db)
+    if not actual:
+        raise ReglaRechazada("No hay nadie cantando ahora mismo.")
+    actual.votos_fuego = (actual.votos_fuego or 0) + 1
+    db.commit()
+    db.refresh(actual)
+    return actual
+
+
 def _finalizar(db: Session, solicitud: Solicitud) -> None:
     config = get_config(db)
     solicitud.estado = EstadoSolicitud.finalizada

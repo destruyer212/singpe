@@ -32,8 +32,13 @@ def cola_de_mesa(numero: int, db: Session = Depends(get_db)):
 
 @router.get("/estado")
 def estado_general(db: Session = Depends(get_db)):
-    """Info pública liviana para el gauge de 'personas esperando' del formulario."""
-    return {"en_cola": len(crud.obtener_cola(db))}
+    """Info pública liviana para el gauge de 'personas esperando' y el botón de voto 🔥."""
+    actual = crud.obtener_cantando(db)
+    return {
+        "en_cola": len(crud.obtener_cola(db)),
+        "cantando_mesa": actual.mesa.numero if actual else None,
+        "cantando_votos": actual.votos_fuego if actual else 0,
+    }
 
 
 @router.post("/{numero}/solicitudes", response_model=SolicitudOut)

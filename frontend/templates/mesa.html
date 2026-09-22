@@ -95,6 +95,10 @@
     <h2 class="text-sm font-semibold text-white/60 mb-2 mt-8">Tu cola</h2>
     <div id="mi-cola" class="space-y-2 text-sm"></div>
   </div>
+
+  <button id="btn-voto-fuego" class="hidden fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-red-600 shadow-lg shadow-red-900/50 text-2xl flex flex-col items-center justify-center active:scale-90 transition-transform z-20">
+    🔥<span id="voto-fuego-contador" class="text-[10px] font-bold leading-none mt-0.5">0</span>
+  </button>
 </div>
 
 <script src="/static/js/mesa.js" data-numero="{{ mesa.numero }}" data-espera="{{ config.segundos_entre_pedidos }}"></script>

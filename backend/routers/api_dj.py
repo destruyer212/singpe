@@ -67,6 +67,17 @@ async def cancelar(solicitud_id: int, db: Session = Depends(get_db)):
     return solicitud
 
 
+@router.post("/actual/votar", response_model=SolicitudOut)
+async def votar_actual(db: Session = Depends(get_db)):
+    """El público vota 🔥 por quien está cantando ahora (desde cualquier mesa)."""
+    try:
+        solicitud = crud.votar_actual(db)
+    except crud.ReglaRechazada as e:
+        raise HTTPException(status_code=400, detail=e.motivo)
+    await manager.broadcast("cola_actualizada")
+    return solicitud
+
+
 @router.post("/solicitudes/{solicitud_id}/mover")
 async def mover(solicitud_id: int, direccion: str = Query(pattern="^(arriba|abajo)$"), db: Session = Depends(get_db)):
     crud.mover_solicitud(db, solicitud_id, direccion)

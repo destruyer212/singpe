@@ -20,6 +20,7 @@
   const listaProximos = document.getElementById("lista-proximos");
   const ytError = document.getElementById("yt-error");
   const ytErrorLink = document.getElementById("yt-error-link");
+  const infoVotos = document.getElementById("info-votos");
 
   let solicitudActualId = null;
   let lineasLrc = [];
@@ -211,6 +212,7 @@
     infoArtista.textContent = s.cancion_artista || "";
     infoCantante.textContent = s.cantantes && s.cantantes.length ? s.cantantes.join(" & ") : s.nombre_cantante || "Anónimo";
     infoMensaje.textContent = s.mensaje ? `💬 ${s.mensaje}` : "";
+    infoVotos.textContent = `🔥 ${s.votos_fuego || 0}`;
 
     ocultarTodosLosMedios();
     lineasLrc = [];
@@ -296,6 +298,12 @@
     reproductor.classList.remove("hidden");
 
     if (actual.id !== solicitudActualId) cargarCancion(actual);
+
+    if (infoVotos.textContent !== `🔥 ${actual.votos_fuego || 0}`) {
+      infoVotos.textContent = `🔥 ${actual.votos_fuego || 0}`;
+      infoVotos.classList.add("scale-125");
+      setTimeout(() => infoVotos.classList.remove("scale-125"), 200);
+    }
 
     const proximos = cola.filter((s) => s.id !== actual.id).slice(0, 6);
     if (proximos.length) {
