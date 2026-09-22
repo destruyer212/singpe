@@ -6,13 +6,16 @@ simplemente devuelve una lista vacía y el cliente puede seguir escribiendo
 el nombre de la canción a mano.
 """
 import json
+import re
 import urllib.parse
 import urllib.request
+from html import unescape
 from datetime import date
 
 from backend.config import BASE_DIR, YOUTUBE_API_KEY
 
 BUSQUEDA_URL = "https://www.googleapis.com/youtube/v3/search"
+BUSQUEDA_WEB_URL = "https://www.youtube.com/results"
 
 # Cuota gratuita de YouTube Data API: 10,000 unidades/día.
 # Cada búsqueda (search.list) cuesta 100 unidades -> ~100 búsquedas/día gratis.
@@ -53,42 +56,23 @@ def obtener_uso_hoy() -> dict:
     }
 
 
-def buscar_karaoke(q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]:
-    q = (q or "").strip()
-    if not YOUTUBE_API_KEY or not q:
-        return []
-
+def _consulta_youtube(q: str, modo: str) -> str:
     # "karaoke" (sin voz) busca la pista instrumental pura; "voz_guia" (con
     # letra) busca la canción normal/original, con la voz del cantante.
     if modo == "voz_guia":
-        consulta = q
-    else:
-        consulta = f"{q} karaoke sin voz instrumental"
+        return q
+    return f"{q} karaoke"
 
-    params = {
-        "part": "snippet",
-        "q": consulta,
-        "type": "video",
-        "videoEmbeddable": "true",
-        "maxResults": str(limite),
-        "safeSearch": "moderate",
-        "key": YOUTUBE_API_KEY,
-    }
-    url = f"{BUSQUEDA_URL}?{urllib.parse.urlencode(params)}"
-    _registrar_busqueda()
 
-    try:
-        with urllib.request.urlopen(url, timeout=6) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except Exception:
-        return []
-
+def _normalizar_resultados(items: list[dict]) -> list[dict]:
     resultados = []
-    for item in data.get("items", []):
+    vistos = set()
+    for item in items:
         video_id = item.get("id", {}).get("videoId")
         snippet = item.get("snippet", {})
-        if not video_id:
+        if not video_id or video_id in vistos:
             continue
+        vistos.add(video_id)
         miniaturas = snippet.get("thumbnails", {})
         miniatura = (
             miniaturas.get("medium", {}).get("url")
@@ -103,6 +87,108 @@ def buscar_karaoke(q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]
             }
         )
     return resultados
+
+
+def _buscar_con_api(consulta: str, limite: int) -> list[dict]:
+    if not YOUTUBE_API_KEY:
+        return []
+
+    params = {
+        "part": "snippet",
+        "q": consulta,
+        "type": "video",
+        "videoEmbeddable": "true",
+        "maxResults": str(limite),
+        "safeSearch": "moderate",
+        "key": YOUTUBE_API_KEY,
+    }
+    url = f"{BUSQUEDA_URL}?{urllib.parse.urlencode(params)}"
+    _registrar_busqueda()
+
+    try:
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return []
+
+    return _normalizar_resultados(data.get("items", []))
+
+
+def _buscar_en_web(consulta: str, limite: int) -> list[dict]:
+    params = {"search_query": consulta}
+    url = f"{BUSQUEDA_WEB_URL}?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/126.0 Safari/537.36"
+            ),
+            "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+    except Exception:
+        return []
+
+    resultados = []
+    vistos = set()
+    for video_id in re.findall(r'"videoId":"([a-zA-Z0-9_-]{11})"', html):
+        if video_id in vistos:
+            continue
+        vistos.add(video_id)
+        pos = html.find(f'"videoId":"{video_id}"')
+        tramo = html[pos : pos + 3500]
+        titulo = ""
+        canal = ""
+        title_match = re.search(r'"title":\{"runs":\[\{"text":"(.*?)"', tramo)
+        if not title_match:
+            title_match = re.search(r'"title":\{"simpleText":"(.*?)"', tramo)
+        owner_match = re.search(r'"ownerText":\{"runs":\[\{"text":"(.*?)"', tramo)
+        if title_match:
+            titulo = unescape(title_match.group(1).encode("utf-8").decode("unicode_escape", errors="ignore"))
+        if owner_match:
+            canal = unescape(owner_match.group(1).encode("utf-8").decode("unicode_escape", errors="ignore"))
+        if not titulo:
+            continue
+        resultados.append(
+            {
+                "video_id": video_id,
+                "titulo": titulo,
+                "canal": canal,
+                "miniatura": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",
+            }
+        )
+        if len(resultados) >= limite:
+            break
+    return resultados
+
+
+def buscar_karaoke(q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]:
+    q = (q or "").strip()
+    if not q:
+        return []
+
+    consulta = _consulta_youtube(q, modo)
+    variantes = [consulta]
+    if modo != "voz_guia":
+        variantes.extend([f"{q} karaoke instrumental", f"{q} karaoke sin voz"])
+
+    for variante in variantes:
+        resultados = _buscar_con_api(variante, limite)
+        if resultados:
+            return resultados
+
+    for variante in variantes:
+        resultados = _buscar_en_web(variante, limite)
+        if resultados:
+            return resultados
+
+    return []
 
 
 def obtener_titulo_actual(video_id: str) -> dict | None:

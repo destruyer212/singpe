@@ -236,8 +236,16 @@
       return;
     }
     ytMsg.textContent = "Buscando en YouTube...";
-    const res = await fetch(`/api/mesas/youtube?q=${encodeURIComponent(q)}&modo=${encodeURIComponent(modo)}`);
-    const data = await res.json();
+    let data;
+    try {
+      const res = await fetch(`/api/mesas/youtube?q=${encodeURIComponent(q)}&modo=${encodeURIComponent(modo)}`);
+      if (!res.ok) throw new Error("youtube");
+      data = await res.json();
+    } catch {
+      resultados.innerHTML = "";
+      ytMsg.textContent = "YouTube demoró en responder. Intenta otra vez en unos segundos.";
+      return;
+    }
     resultados.innerHTML = "";
 
     if (!data.disponible) {
