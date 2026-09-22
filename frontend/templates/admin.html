@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Administración · SingPe{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6 space-y-8">
+  <h1 class="text-2xl font-extrabold text-neon-cyan neon-text">⚙️ Administración</h1>
+
+  <section class="glass rounded-2xl p-5">
+    <h2 class="font-bold mb-3">Reglas del evento</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="text-xs text-white/50">Nombre del evento</label>
+        <input id="cfg-nombre" class="w-full mt-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2" />
+      </div>
+      <div>
+        <label class="text-xs text-white/50">Segundos entre pedidos por mesa</label>
+        <input id="cfg-segundos" type="number" min="0" class="w-full mt-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2" />
+      </div>
+      <div>
+        <label class="text-xs text-white/50">Máx. canciones pendientes por mesa</label>
+        <input id="cfg-max" type="number" min="1" class="w-full mt-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2" />
+      </div>
+      <div>
+        <label class="text-xs text-white/50">Puntos por canción cantada</label>
+        <input id="cfg-puntos" type="number" min="0" class="w-full mt-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2" />
+      </div>
+    </div>
+    <button id="btn-guardar-cfg" class="mt-4 px-4 py-2 rounded-xl bg-neon-purple/70 hover:bg-neon-purple font-semibold text-sm">Guardar reglas</button>
+    <span id="cfg-msg" class="ml-3 text-sm text-green-400"></span>
+  </section>
+
+  <section class="glass rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-bold">Mesas y códigos QR</h2>
+      <div class="flex items-center gap-2">
+        <input id="cantidad-mesas" type="number" value="10" min="1" class="w-20 bg-black/30 border border-white/10 rounded-xl px-2 py-1.5 text-sm" />
+        <button id="btn-generar-mesas" class="px-3 py-1.5 rounded-xl bg-neon-pink/70 hover:bg-neon-pink text-sm font-semibold">Generar mesas + QR</button>
+      </div>
+    </div>
+    <div id="mesas-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+  </section>
+
+  <section class="glass rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-bold">Biblioteca de canciones</h2>
+      <button id="btn-escanear" class="px-3 py-1.5 rounded-xl bg-neon-cyan/70 hover:bg-neon-cyan text-sm font-semibold text-black">🔄 Escanear karaoke_library/</button>
+    </div>
+    <p class="text-xs text-white/40 mb-3">Coloca cada canción en <code>karaoke_library/&lt;artista&gt;/&lt;titulo&gt;/</code> con un archivo <code>audio.mp3</code> (y opcionalmente <code>video.mp4</code>, <code>lyrics.lrc</code>, <code>cover.jpg</code>) y presiona escanear.</p>
+    <div id="escaneo-msg" class="text-sm text-green-400 mb-3"></div>
+    <div id="canciones-tabla" class="space-y-1 text-sm max-h-80 overflow-y-auto"></div>
+  </section>
+</div>
+
+<script src="/static/js/admin.js"></script>
+{% endblock %}

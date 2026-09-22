@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}SingPe Karaoke{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-16 text-center">
+  <h1 class="text-5xl font-extrabold text-neon-pink neon-text mb-2">🎤 SingPe</h1>
+  <p class="text-white/60 mb-10">Sistema de gestión de karaoke — {{ config.nombre_evento }}</p>
+
+  <div class="grid sm:grid-cols-3 gap-4 mb-12">
+    <a href="/dj" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
+      <div class="text-4xl mb-2">🎧</div>
+      <div class="font-bold">Panel DJ</div>
+      <div class="text-sm text-white/50">Controlar la cola</div>
+    </a>
+    <a href="/tv" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
+      <div class="text-4xl mb-2">📺</div>
+      <div class="font-bold">Pantalla TV</div>
+      <div class="text-sm text-white/50">Proyectar en el local</div>
+    </a>
+    <a href="/admin" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
+      <div class="text-4xl mb-2">⚙️</div>
+      <div class="font-bold">Administración</div>
+      <div class="text-sm text-white/50">Mesas, canciones, reglas</div>
+    </a>
+  </div>
+
+  {% if mesas %}
+  <h2 class="text-lg font-semibold text-white/70 mb-3">Mesas registradas (acceso directo para pruebas)</h2>
+  <div class="flex flex-wrap gap-2 justify-center">
+    {% for m in mesas %}
+    <a href="/mesa/{{ m.numero }}" class="px-4 py-2 rounded-full glass hover:bg-white/10 text-sm">Mesa {{ m.numero }}</a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-white/40 text-sm">Aún no hay mesas. Ve a <a href="/admin" class="underline">Administración</a> para generarlas junto con sus códigos QR.</p>
+  {% endif %}
+</div>
+{% endblock %}

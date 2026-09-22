@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+frontend/static/qr/*.png
+frontend/static/tts_cache/*.mp3
+.env
+*.log
+youtube_api_key.txt
+database_url.txt

@@ -1,0 +1,74 @@
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
+from backend import crud
+from backend.database import get_db
+from backend.schemas import SolicitudOut
+from backend.tts import generar_audio
+from backend.ws_manager import manager
+
+router = APIRouter(prefix="/api/dj", tags=["dj"])
+
+
+@router.get("/tts")
+async def texto_a_voz(texto: str, voz: str | None = None):
+    """Genera (o reutiliza del caché) un anuncio en voz natural para la pantalla TV."""
+    try:
+        url = await generar_audio(texto, voz) if voz else await generar_audio(texto)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Texto vacío")
+    except Exception:
+        raise HTTPException(status_code=502, detail="No se pudo generar el audio de voz")
+    return {"url": url}
+
+
+@router.get("/cola", response_model=list[SolicitudOut])
+def ver_cola(db: Session = Depends(get_db)):
+    return crud.obtener_cola(db)
+
+
+@router.get("/actual", response_model=SolicitudOut | None)
+def ver_actual(db: Session = Depends(get_db)):
+    return crud.obtener_cantando(db)
+
+
+@router.get("/historial", response_model=list[SolicitudOut])
+def ver_historial(db: Session = Depends(get_db)):
+    return crud.historial(db)
+
+
+@router.post("/solicitudes/{solicitud_id}/iniciar", response_model=SolicitudOut)
+async def iniciar(solicitud_id: int, db: Session = Depends(get_db)):
+    try:
+        solicitud = crud.iniciar_solicitud(db, solicitud_id)
+    except crud.ReglaRechazada as e:
+        raise HTTPException(status_code=404, detail=e.motivo)
+    await manager.broadcast("cola_actualizada")
+    return solicitud
+
+
+@router.post("/solicitudes/{solicitud_id}/finalizar", response_model=SolicitudOut)
+async def finalizar(solicitud_id: int, db: Session = Depends(get_db)):
+    try:
+        solicitud = crud.finalizar_solicitud(db, solicitud_id)
+    except crud.ReglaRechazada as e:
+        raise HTTPException(status_code=404, detail=e.motivo)
+    await manager.broadcast("cola_actualizada")
+    return solicitud
+
+
+@router.post("/solicitudes/{solicitud_id}/cancelar", response_model=SolicitudOut)
+async def cancelar(solicitud_id: int, db: Session = Depends(get_db)):
+    try:
+        solicitud = crud.cancelar_solicitud(db, solicitud_id)
+    except crud.ReglaRechazada as e:
+        raise HTTPException(status_code=404, detail=e.motivo)
+    await manager.broadcast("cola_actualizada")
+    return solicitud
+
+
+@router.post("/solicitudes/{solicitud_id}/mover")
+async def mover(solicitud_id: int, direccion: str = Query(pattern="^(arriba|abajo)$"), db: Session = Depends(get_db)):
+    crud.mover_solicitud(db, solicitud_id, direccion)
+    await manager.broadcast("cola_actualizada")
+    return {"ok": True}

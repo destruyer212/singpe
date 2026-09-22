@@ -1,0 +1,30 @@
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
+from backend.config import LIBRARY_DIR, STATIC_DIR
+from backend.database import Base, SessionLocal, engine
+from backend.routers import api_admin, api_dj, api_mesas, pages, ws
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="SingPe Karaoke")
+
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+app.mount("/media", StaticFiles(directory=str(LIBRARY_DIR)), name="media")
+
+app.include_router(pages.router)
+app.include_router(ws.router)
+app.include_router(api_mesas.router)
+app.include_router(api_dj.router)
+app.include_router(api_admin.router)
+
+
+@app.on_event("startup")
+def seed_config():
+    from backend import crud
+
+    db = SessionLocal()
+    try:
+        crud.get_config(db)
+    finally:
+        db.close()

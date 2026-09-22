@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>{% block title %}SingPe Karaoke{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            neon: { pink: '#ff2fb0', purple: '#9333ea', cyan: '#22d3ee', yellow: '#fde047' },
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#0b0620] via-[#170a2e] to-[#1a0b30] text-white">
+  {% block content %}{% endblock %}
+</body>
+</html>
