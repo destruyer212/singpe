@@ -36,15 +36,46 @@
     mesasGrid.innerHTML = mesas
       .map(
         (m) => `
-      <div class="glass rounded-xl p-3 text-center">
+      <div class="glass rounded-xl p-3 text-center ${m.activo ? "" : "opacity-50"}">
         <img src="${m.qr}" class="w-full aspect-square object-contain bg-white rounded-lg mb-2" onerror="this.style.display='none'" />
         <div class="font-bold">Mesa ${m.numero}</div>
         <div class="text-xs text-white/40">${m.puntos} pts</div>
-        <a href="${m.qr}" download class="text-xs underline text-neon-cyan">Descargar QR</a>
+        <div class="flex items-center justify-center gap-1 mt-1 text-xs text-white/50">
+          👥 <input type="number" min="1" value="${m.capacidad}" data-numero="${m.numero}"
+            class="input-capacidad w-12 bg-black/30 border border-white/10 rounded-lg px-1 py-0.5 text-center" />
+        </div>
+        <button data-numero="${m.numero}" data-activo="${m.activo}"
+          class="btn-toggle-activo mt-2 w-full text-xs py-1.5 rounded-lg font-semibold ${m.activo ? "bg-green-600/30 text-green-300 hover:bg-red-600/30 hover:text-red-300" : "bg-red-600/30 text-red-300 hover:bg-green-600/30 hover:text-green-300"}">
+          ${m.activo ? "✓ Activa" : "✕ Inactiva"}
+        </button>
+        <a href="${m.qr}" download class="block mt-1 text-xs underline text-neon-cyan">Descargar QR</a>
       </div>`
       )
       .join("");
   }
+
+  mesasGrid.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-toggle-activo");
+    if (!btn) return;
+    const activoActual = btn.dataset.activo === "true";
+    await fetch(`/api/admin/mesas/${btn.dataset.numero}/activo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activo: !activoActual }),
+    });
+    cargarMesas();
+  });
+
+  mesasGrid.addEventListener("change", async (e) => {
+    const input = e.target.closest(".input-capacidad");
+    if (!input) return;
+    const capacidad = parseInt(input.value, 10) || 1;
+    await fetch(`/api/admin/mesas/${input.dataset.numero}/capacidad`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ capacidad }),
+    });
+  });
 
   document.getElementById("btn-generar-mesas").addEventListener("click", async () => {
     const cantidad = parseInt(document.getElementById("cantidad-mesas").value, 10) || 1;

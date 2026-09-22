@@ -30,6 +30,12 @@ def titulo_actual_youtube(video_id: str):
     return obtener_titulo_actual(video_id) or {}
 
 
+@router.get("/activas")
+def mesas_activas(db: Session = Depends(get_db)):
+    """Lista liviana de mesas habilitadas, para el selector de 'retar a otra mesa'."""
+    return [{"numero": m.numero} for m in crud.listar_mesas(db) if m.activo]
+
+
 @router.get("/{numero}/cola", response_model=list[SolicitudOut])
 def cola_de_mesa(numero: int, db: Session = Depends(get_db)):
     mesa = crud.get_or_create_mesa(db, numero)

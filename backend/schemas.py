@@ -32,6 +32,7 @@ class MesaOut(BaseModel):
     nombre: Optional[str] = None
     activo: bool
     puntos: int
+    capacidad: int = 12
 
 
 # ---------- Solicitud ----------

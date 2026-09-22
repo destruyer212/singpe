@@ -21,6 +21,7 @@ def listar_mesas(db: Session = Depends(get_db)):
             "nombre": m.nombre,
             "activo": m.activo,
             "puntos": m.puntos,
+            "capacidad": m.capacidad,
             "qr": f"/static/qr/mesa_{m.numero}.png",
         }
         for m in crud.listar_mesas(db)
@@ -49,6 +50,18 @@ class MesaActivaIn(BaseModel):
 def cambiar_activo_mesa(numero: int, payload: MesaActivaIn, db: Session = Depends(get_db)):
     mesa = crud.get_or_create_mesa(db, numero)
     mesa.activo = payload.activo
+    db.commit()
+    return {"ok": True}
+
+
+class MesaCapacidadIn(BaseModel):
+    capacidad: int
+
+
+@router.post("/mesas/{numero}/capacidad")
+def cambiar_capacidad_mesa(numero: int, payload: MesaCapacidadIn, db: Session = Depends(get_db)):
+    mesa = crud.get_or_create_mesa(db, numero)
+    mesa.capacidad = max(1, payload.capacidad)
     db.commit()
     return {"ok": True}
 

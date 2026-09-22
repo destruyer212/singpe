@@ -37,6 +37,7 @@ class Mesa(Base):
     nombre = Column(String, nullable=True)
     activo = Column(Boolean, default=True)
     puntos = Column(Integer, default=0)
+    capacidad = Column(Integer, default=12)  # personas que caben en la mesa
 
     solicitudes = relationship("Solicitud", back_populates="mesa")
 

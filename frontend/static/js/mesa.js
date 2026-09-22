@@ -70,13 +70,23 @@
     const actuales = cantantesLista.querySelectorAll("input").length;
     if (actuales >= MAX_CANTANTES) return;
     const fila = document.createElement("div");
-    fila.className = "flex gap-2";
+    fila.className = "flex items-center gap-2";
     fila.innerHTML = `
+      <div class="w-9 h-9 shrink-0 rounded-full bg-gradient-to-br from-neon-purple to-neon-pink flex items-center justify-center text-xs font-extrabold shadow-md shadow-purple-900/30">${actuales + 1}</div>
       <input type="text" maxlength="40" placeholder="Otro cantante..." value="${valor.replace(/"/g, "&quot;")}"
-        class="cantante-extra flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-neon-pink" />
-      <button type="button" class="btn-quitar-cantante w-11 rounded-xl bg-white/10 hover:bg-white/20 text-white/60">✕</button>`;
-    fila.querySelector(".btn-quitar-cantante").addEventListener("click", () => fila.remove());
+        class="cantante-extra flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-neon-pink transition" />
+      <button type="button" class="btn-quitar-cantante w-9 h-9 shrink-0 rounded-xl bg-red-600/30 hover:bg-red-600/60 transition flex items-center justify-center">✕</button>`;
+    fila.querySelector(".btn-quitar-cantante").addEventListener("click", () => {
+      fila.remove();
+      renumerarCantantes();
+    });
     cantantesLista.appendChild(fila);
+  }
+
+  function renumerarCantantes() {
+    cantantesLista.querySelectorAll("div.flex.items-center.gap-2 > div").forEach((badge, i) => {
+      badge.textContent = i + 1;
+    });
   }
 
   btnAgregarCantante.addEventListener("click", () => agregarCampoCantante());
@@ -446,6 +456,22 @@
     actualizarGauge();
   };
 
+  async function cargarMesasParaReto() {
+    const mesas = await fetch("/api/mesas/activas").then((r) => r.json());
+    const valorPrevio = mesaRetadaInput.value;
+    mesaRetadaInput.innerHTML = '<option value="">-- Elegir mesa --</option>';
+    mesas
+      .filter((m) => String(m.numero) !== String(numero))
+      .forEach((m) => {
+        const opt = document.createElement("option");
+        opt.value = m.numero;
+        opt.textContent = `Mesa ${m.numero}`;
+        mesaRetadaInput.appendChild(opt);
+      });
+    if (valorPrevio) mesaRetadaInput.value = valorPrevio;
+  }
+
+  cargarMesasParaReto();
   cargarMiCola();
   actualizarGauge();
 })();
