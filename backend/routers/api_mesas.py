@@ -6,7 +6,7 @@ from backend.config import YOUTUBE_API_KEY
 from backend.database import get_db
 from backend.schemas import CancionOut, SolicitudCreate, SolicitudOut
 from backend.ws_manager import manager
-from backend.youtube import buscar_karaoke
+from backend.youtube import buscar_karaoke, obtener_titulo_actual
 
 router = APIRouter(prefix="/api/mesas", tags=["mesas"])
 
@@ -22,6 +22,12 @@ def buscar_youtube(q: str, modo: str = "karaoke"):
     """Catálogo prácticamente ilimitado: busca videos karaoke en YouTube.
     modo="karaoke" busca instrumental puro; modo="voz_guia" busca con voz de referencia."""
     return {"disponible": bool(YOUTUBE_API_KEY), "resultados": buscar_karaoke(q, modo=modo)}
+
+
+@router.get("/youtube/titulo")
+def titulo_actual_youtube(video_id: str):
+    """Título real y actual del video (corrige nombres viejos/en caché de la búsqueda)."""
+    return obtener_titulo_actual(video_id) or {}
 
 
 @router.get("/{numero}/cola", response_model=list[SolicitudOut])

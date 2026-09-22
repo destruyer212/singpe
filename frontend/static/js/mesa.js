@@ -188,6 +188,23 @@
     selCanal.textContent = video.canal;
     seleccion.classList.remove("hidden");
     resultados.innerHTML = "";
+
+    // La búsqueda a veces trae un título viejo/en caché. Se confirma el
+    // título REAL y actual del video antes de dejarlo guardado.
+    const videoIdAlElegir = video.video_id;
+    fetch(`/api/mesas/youtube/titulo?video_id=${encodeURIComponent(videoIdAlElegir)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((real) => {
+        if (!real || !real.titulo) return;
+        if (youtubeVideoId !== videoIdAlElegir) return; // ya cambiaron de selección
+        cancionInput.value = real.titulo;
+        selTitulo.textContent = real.titulo;
+        if (real.canal) {
+          artistaInput.value = real.canal;
+          selCanal.textContent = real.canal;
+        }
+      })
+      .catch(() => {});
   }
 
   btnQuitarSeleccion.addEventListener("click", limpiarSeleccion);

@@ -63,3 +63,22 @@ def buscar_karaoke(q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]
             }
         )
     return resultados
+
+
+def obtener_titulo_actual(video_id: str) -> dict | None:
+    """A veces la búsqueda de YouTube devuelve un título viejo/en caché que ya
+    no coincide con el video real. Esto consulta el título ACTUAL vía oEmbed
+    (endpoint público de YouTube, sin necesitar la API key) justo cuando el
+    cliente elige un resultado, para no guardar un nombre desactualizado."""
+    video_id = (video_id or "").strip()
+    if not video_id:
+        return None
+    url = "https://www.youtube.com/oembed?" + urllib.parse.urlencode(
+        {"url": f"https://www.youtube.com/watch?v={video_id}", "format": "json"}
+    )
+    try:
+        with urllib.request.urlopen(url, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+    return {"titulo": data.get("title", ""), "canal": data.get("author_name", "")}
