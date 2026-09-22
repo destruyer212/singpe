@@ -67,6 +67,16 @@ async def cancelar(solicitud_id: int, db: Session = Depends(get_db)):
     return solicitud
 
 
+@router.post("/solicitudes/{solicitud_id}/avisar", response_model=SolicitudOut)
+async def avisar(solicitud_id: int, db: Session = Depends(get_db)):
+    """Marca que ya se le avisó por voz a la mesa 'sigues pronto' (no repetir)."""
+    try:
+        solicitud = crud.marcar_avisada(db, solicitud_id)
+    except crud.ReglaRechazada as e:
+        raise HTTPException(status_code=404, detail=e.motivo)
+    return solicitud
+
+
 @router.post("/actual/votar", response_model=SolicitudOut)
 async def votar_actual(db: Session = Depends(get_db)):
     """El público vota 🔥 por quien está cantando ahora (desde cualquier mesa)."""

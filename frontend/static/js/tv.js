@@ -43,6 +43,22 @@
     }
   }
 
+  let avisando = false;
+
+  // A quien sigue justo después del que está cantando (posición 2 de la fila)
+  // se le avisa una sola vez por voz: "Mesa X, prepárate, sigues pronto".
+  async function avisarSiLeToca(cola, actual) {
+    if (avisando) return;
+    const pendientes = cola.filter((s) => s.estado === "pendiente" && s.id !== actual.id).sort((a, b) => a.orden - b.orden);
+    const siguiente = pendientes[0];
+    if (!siguiente || siguiente.avisada) return;
+
+    avisando = true;
+    await decirMensaje(`Mesa ${siguiente.mesa.numero}, prepárate, ¡sigues pronto!`);
+    await fetch(`/api/dj/solicitudes/${siguiente.id}/avisar`, { method: "POST" });
+    avisando = false;
+  }
+
   async function marcarFinalizada(id) {
     if (finalizando) return;
     finalizando = true;
@@ -304,6 +320,8 @@
       infoVotos.classList.add("scale-125");
       setTimeout(() => infoVotos.classList.remove("scale-125"), 200);
     }
+
+    avisarSiLeToca(cola, actual);
 
     const proximos = cola.filter((s) => s.id !== actual.id).slice(0, 6);
     if (proximos.length) {

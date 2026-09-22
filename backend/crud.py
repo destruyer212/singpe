@@ -215,6 +215,17 @@ def votar_actual(db: Session) -> Solicitud:
     return actual
 
 
+def marcar_avisada(db: Session, solicitud_id: int) -> Solicitud:
+    """La pantalla TV ya anunció por voz 'sigues pronto' — no repetir el aviso."""
+    solicitud = db.query(Solicitud).filter(Solicitud.id == solicitud_id).first()
+    if not solicitud:
+        raise ReglaRechazada("Solicitud no encontrada.")
+    solicitud.avisada = True
+    db.commit()
+    db.refresh(solicitud)
+    return solicitud
+
+
 def _finalizar(db: Session, solicitud: Solicitud) -> None:
     config = get_config(db)
     solicitud.estado = EstadoSolicitud.finalizada
