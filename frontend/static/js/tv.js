@@ -12,6 +12,7 @@
   const infoArtista = document.getElementById("info-artista");
   const infoCantante = document.getElementById("info-cantante");
   const infoMensaje = document.getElementById("info-mensaje");
+  const infoHeader = document.getElementById("info-header");
   const letras = document.getElementById("letras");
   const lrcAnterior = document.getElementById("lrc-anterior");
   const lrcActual = document.getElementById("lrc-actual");
@@ -361,6 +362,22 @@
     }
   }
 
+  // ---------- Encabezado (título/mesa/cantante): se esconde solo para dejar
+  // ver bien la letra, y vuelve al mover el mouse. ----------
+  let ocultarHeaderTimeout = null;
+  function mostrarHeaderTemporal() {
+    infoHeader.classList.remove("opacity-0");
+    infoHeader.classList.add("opacity-100");
+    clearTimeout(ocultarHeaderTimeout);
+    ocultarHeaderTimeout = setTimeout(() => {
+      infoHeader.classList.remove("opacity-100");
+      infoHeader.classList.add("opacity-0");
+    }, 6000);
+  }
+  document.addEventListener("mousemove", () => {
+    if (!reproductor.classList.contains("hidden")) mostrarHeaderTemporal();
+  });
+
   // ---------- Carga de una solicitud ----------
   function ocultarTodosLosMedios() {
     video.classList.add("hidden");
@@ -381,12 +398,16 @@
     audio.removeAttribute("src");
     video.removeAttribute("src");
     letras.classList.add("hidden");
+    clearTimeout(ocultarHeaderTimeout);
+    infoHeader.classList.remove("opacity-0");
+    infoHeader.classList.add("opacity-100");
   }
 
   function cargarCancion(s) {
     solicitudActualId = s.id;
     solicitudActualDatos = s;
     finalizando = false;
+    mostrarHeaderTemporal();
 
     infoMesa.textContent = s.mesa.numero;
     infoTitulo.textContent = s.cancion_titulo;

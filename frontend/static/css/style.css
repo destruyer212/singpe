@@ -35,9 +35,21 @@ body {
 }
 .lrc-linea.activa {
   opacity: 1;
-  transform: scale(1.05);
-  color: #fde047;
-  text-shadow: 0 0 10px rgba(253, 224, 71, 0.8);
+  color: transparent;
+  text-shadow: none;
+  background: linear-gradient(90deg, #fde047, #fb923c, #ff2fb0, #fde047);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: lrc-brillo 3s linear infinite, lrc-vibrar 0.55s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 14px rgba(253, 224, 71, 0.5));
+}
+@keyframes lrc-brillo {
+  to { background-position: 300% center; }
+}
+@keyframes lrc-vibrar {
+  from { transform: scale(1.02) rotate(-0.6deg); }
+  to { transform: scale(1.07) rotate(0.6deg); }
 }
 
 .sticker-pop {
