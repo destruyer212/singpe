@@ -109,6 +109,28 @@ class Solicitud(Base):
     cancion = relationship("Cancion", back_populates="solicitudes")
 
 
+class VideoBloqueado(Base):
+    """Videos de YouTube reportados como clickbait (título falso, contenido
+    real distinto) — quedan bloqueados para siempre en todas las búsquedas."""
+
+    __tablename__ = "videos_bloqueados"
+
+    id = Column(Integer, primary_key=True, index=True)
+    video_id = Column(String, unique=True, index=True, nullable=False)
+    canal = Column(String, nullable=True)
+    creado_en = Column(DateTime, default=datetime.utcnow)
+
+
+class CanalBloqueado(Base):
+    """Canales completos reportados por subir contenido con metadata falsa."""
+
+    __tablename__ = "canales_bloqueados"
+
+    id = Column(Integer, primary_key=True, index=True)
+    canal = Column(String, unique=True, index=True, nullable=False)  # guardado en minúsculas
+    creado_en = Column(DateTime, default=datetime.utcnow)
+
+
 class ConfiguracionSistema(Base):
     __tablename__ = "configuracion"
 

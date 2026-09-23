@@ -4,11 +4,13 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from backend.models import (
+    CanalBloqueado,
     Cancion,
     ConfiguracionSistema,
     EstadoSolicitud,
     Mesa,
     Solicitud,
+    VideoBloqueado,
 )
 
 ESTADOS_ACTIVOS = (
@@ -367,3 +369,25 @@ def ranking_de_la_noche(db: Session) -> list[dict]:
     ranking = [{"mesa": f.numero, "canciones": f.canciones, "votos": f.votos} for f in filas]
     ranking.sort(key=lambda r: (r["votos"], r["canciones"]), reverse=True)
     return ranking
+
+
+# ---------- Videos/canales de YouTube reportados como falsos (clickbait) ----------
+def bloquear_video_youtube(db: Session, video_id: str, canal: str | None = None) -> None:
+    """Un video quedó comprobado como clickbait (título falso). Se bloquea
+    para siempre en PostgreSQL, así sobrevive a cualquier redeploy."""
+    video_id = (video_id or "").strip()
+    if not video_id:
+        return
+    if not db.query(VideoBloqueado).filter(VideoBloqueado.video_id == video_id).first():
+        db.add(VideoBloqueado(video_id=video_id, canal=canal))
+    if canal:
+        canal_normalizado = canal.strip().lower()
+        if canal_normalizado and not db.query(CanalBloqueado).filter(CanalBloqueado.canal == canal_normalizado).first():
+            db.add(CanalBloqueado(canal=canal_normalizado))
+    db.commit()
+
+
+def listar_bloqueados_youtube(db: Session) -> dict:
+    videos = {v.video_id for v in db.query(VideoBloqueado.video_id).all()}
+    canales = {c.canal for c in db.query(CanalBloqueado.canal).all()}
+    return {"videos": videos, "canales": canales}

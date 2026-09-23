@@ -19,10 +19,10 @@ def buscar_canciones(q: str | None = None, db: Session = Depends(get_db)):
 
 
 @router.get("/youtube")
-def buscar_youtube(q: str, modo: str = "karaoke"):
+def buscar_youtube(q: str, modo: str = "karaoke", db: Session = Depends(get_db)):
     """Catálogo prácticamente ilimitado: busca videos karaoke en YouTube.
     modo="karaoke" busca instrumental puro; modo="voz_guia" busca con voz de referencia."""
-    return {"disponible": bool(YOUTUBE_API_KEY), "resultados": buscar_karaoke(q, modo=modo)}
+    return {"disponible": bool(YOUTUBE_API_KEY), "resultados": buscar_karaoke(db, q, modo=modo)}
 
 
 @router.get("/youtube/titulo")
@@ -37,10 +37,10 @@ class ReporteVideoIn(BaseModel):
 
 
 @router.post("/youtube/reportar")
-def reportar_youtube(payload: ReporteVideoIn):
+def reportar_youtube(payload: ReporteVideoIn, db: Session = Depends(get_db)):
     """El video no era lo que decía ser (título falso/clickbait) — se bloquea
-    para que no vuelva a salir en ninguna búsqueda."""
-    reportar_video_falso(payload.video_id, payload.canal)
+    para siempre en la base de datos, no vuelve a salir en ninguna búsqueda."""
+    reportar_video_falso(db, payload.video_id, payload.canal)
     return {"ok": True}
 
 

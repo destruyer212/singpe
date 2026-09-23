@@ -12,6 +12,9 @@ import urllib.request
 from html import unescape
 from datetime import date
 
+from sqlalchemy.orm import Session
+
+from backend import crud
 from backend.config import BASE_DIR, YOUTUBE_API_KEY
 
 BUSQUEDA_URL = "https://www.googleapis.com/youtube/v3/search"
@@ -22,51 +25,27 @@ BUSQUEDA_WEB_URL = "https://www.youtube.com/results"
 # ("Myke Towers - Lala") pero el video real es otra cosa completamente
 # distinta (ej. un capítulo de "31 minutos"). Ni la búsqueda ni el título
 # oficial (oEmbed) delatan esto porque el propio canal mintió en el dato.
-# Por eso se guarda una lista de reportes: video_id o nombre de canal que ya
-# se comprobó que engaña, para que no vuelvan a aparecer en resultados.
-ARCHIVO_BLOQUEADOS = BASE_DIR / "youtube_bloqueados.json"
+# Los reportes se guardan en PostgreSQL (tablas videos_bloqueados/
+# canales_bloqueados) para que sobrevivan cualquier redeploy. Estos dos son
+# la semilla inicial (ya comprobados) por si la tabla todavía está vacía.
 VIDEOS_BLOQUEADOS_INICIAL = {"vXvRENPpjSI"}  # "Myke Towers - Lala" que en realidad es "31 minutos"
 CANALES_BLOQUEADOS_INICIAL = {"karaoke live"}  # canal detectado subiendo videos con título falso
 
 
-def _cargar_bloqueados() -> dict:
-    if ARCHIVO_BLOQUEADOS.exists():
-        try:
-            datos = json.loads(ARCHIVO_BLOQUEADOS.read_text(encoding="utf-8"))
-            return {
-                "videos": set(datos.get("videos", [])) | VIDEOS_BLOQUEADOS_INICIAL,
-                "canales": set(c.lower() for c in datos.get("canales", [])) | CANALES_BLOQUEADOS_INICIAL,
-            }
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            pass
-    return {"videos": set(VIDEOS_BLOQUEADOS_INICIAL), "canales": set(CANALES_BLOQUEADOS_INICIAL)}
-
-
-def reportar_video_falso(video_id: str, canal: str | None = None) -> None:
+def reportar_video_falso(db: Session, video_id: str, canal: str | None = None) -> None:
     """Un cliente o el DJ reporta que este resultado no era lo que decía ser.
-    Queda bloqueado para siempre (video_id, y el canal si lo mandan)."""
-    video_id = (video_id or "").strip()
-    if not video_id:
-        return
-    datos = _cargar_bloqueados()
-    datos["videos"].add(video_id)
-    if canal:
-        datos["canales"].add(canal.strip().lower())
-    try:
-        ARCHIVO_BLOQUEADOS.write_text(
-            json.dumps({"videos": sorted(datos["videos"]), "canales": sorted(datos["canales"])}),
-            encoding="utf-8",
-        )
-    except OSError:
-        pass
+    Queda bloqueado para siempre en la base de datos (video_id y el canal)."""
+    crud.bloquear_video_youtube(db, video_id, canal)
 
 
-def _filtrar_bloqueados(resultados: list[dict]) -> list[dict]:
-    bloqueados = _cargar_bloqueados()
+def _filtrar_bloqueados(db: Session, resultados: list[dict]) -> list[dict]:
+    bloqueados = crud.listar_bloqueados_youtube(db)
+    videos = bloqueados["videos"] | VIDEOS_BLOQUEADOS_INICIAL
+    canales = bloqueados["canales"] | CANALES_BLOQUEADOS_INICIAL
     return [
         r
         for r in resultados
-        if r["video_id"] not in bloqueados["videos"] and (r.get("canal") or "").strip().lower() not in bloqueados["canales"]
+        if r["video_id"] not in videos and (r.get("canal") or "").strip().lower() not in canales
     ]
 
 # Cuota gratuita de YouTube Data API: 10,000 unidades/día.
@@ -220,7 +199,7 @@ def _buscar_en_web(consulta: str, limite: int) -> list[dict]:
     return resultados
 
 
-def buscar_karaoke(q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]:
+def buscar_karaoke(db: Session, q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]:
     q = (q or "").strip()
     if not q:
         return []
@@ -231,12 +210,12 @@ def buscar_karaoke(q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]
         variantes.extend([f"{q} karaoke instrumental", f"{q} karaoke sin voz"])
 
     for variante in variantes:
-        resultados = _filtrar_bloqueados(_buscar_con_api(variante, limite))
+        resultados = _filtrar_bloqueados(db, _buscar_con_api(variante, limite))
         if resultados:
             return resultados
 
     for variante in variantes:
-        resultados = _filtrar_bloqueados(_buscar_en_web(variante, limite))
+        resultados = _filtrar_bloqueados(db, _buscar_en_web(variante, limite))
         if resultados:
             return resultados
 
