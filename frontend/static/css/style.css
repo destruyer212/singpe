@@ -6,6 +6,17 @@ body {
   text-shadow: 0 0 6px currentColor, 0 0 18px currentColor;
 }
 
+/* Clase propia (no de Tailwind) para esconder/mostrar el título con JS.
+   Tailwind por CDN solo genera CSS de clases que aparecen escritas en el
+   HTML; una clase agregada solo desde JavaScript (ej. "opacity-0") nunca
+   recibe estilo real, por eso se define acá en vez de usar utilidades. */
+.se-esconde {
+  transition: opacity 0.7s ease;
+}
+.se-esconde.oculto {
+  opacity: 0;
+}
+
 .glass {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);

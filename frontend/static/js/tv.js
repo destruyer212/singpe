@@ -12,7 +12,6 @@
   const infoArtista = document.getElementById("info-artista");
   const infoCantante = document.getElementById("info-cantante");
   const infoMensaje = document.getElementById("info-mensaje");
-  const infoHeader = document.getElementById("info-header");
   const letras = document.getElementById("letras");
   const lrcAnterior = document.getElementById("lrc-anterior");
   const lrcActual = document.getElementById("lrc-actual");
@@ -362,16 +361,15 @@
     }
   }
 
-  // ---------- Encabezado (título/mesa/cantante): se esconde solo para dejar
-  // ver bien la letra, y vuelve al mover el mouse. ----------
-  let ocultarHeaderTimeout = null;
+  // ---------- Solo el TÍTULO (lo más grande) se esconde solo para dejar ver
+  // bien la letra; mesa/cantante/mensaje/votos quedan siempre visibles. Vuelve
+  // a mostrarse al mover el mouse. ----------
+  let ocultarTituloTimeout = null;
   function mostrarHeaderTemporal() {
-    infoHeader.classList.remove("opacity-0");
-    infoHeader.classList.add("opacity-100");
-    clearTimeout(ocultarHeaderTimeout);
-    ocultarHeaderTimeout = setTimeout(() => {
-      infoHeader.classList.remove("opacity-100");
-      infoHeader.classList.add("opacity-0");
+    infoTitulo.classList.remove("oculto");
+    clearTimeout(ocultarTituloTimeout);
+    ocultarTituloTimeout = setTimeout(() => {
+      infoTitulo.classList.add("oculto");
     }, 6000);
   }
   document.addEventListener("mousemove", () => {
@@ -398,9 +396,8 @@
     audio.removeAttribute("src");
     video.removeAttribute("src");
     letras.classList.add("hidden");
-    clearTimeout(ocultarHeaderTimeout);
-    infoHeader.classList.remove("opacity-0");
-    infoHeader.classList.add("opacity-100");
+    clearTimeout(ocultarTituloTimeout);
+    infoTitulo.classList.remove("oculto");
   }
 
   function cargarCancion(s) {
