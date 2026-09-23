@@ -125,28 +125,67 @@
     }
   }
 
-  function reproducirConDucking(elementoAudio, url) {
+  // ---------- Motor de audio para voz/efectos que NO le quita el foco al video ----------
+  // En TVs y navegadores de TV, arrancar un segundo <audio>/<video> suele
+  // PAUSAR automáticamente el que ya estaba sonando (le quitan el "foco" de
+  // audio, como cuando una llamada interrumpe la música). Por eso la voz y
+  // los efectos ya no se reproducen con un <audio> normal: se decodifican y
+  // se tocan como buffers crudos de Web Audio API, que nunca abren una
+  // sesión de medios nueva y por lo tanto nunca pueden pausar el video.
+  let audioCtx = null;
+  function obtenerAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  const cacheBuffers = new Map();
+
+  async function cargarBuffer(url) {
+    if (cacheBuffers.has(url)) return cacheBuffers.get(url);
+    const ctx = obtenerAudioCtx();
+    const resp = await fetch(url);
+    const arrayBuffer = await resp.arrayBuffer();
+    const buffer = await ctx.decodeAudioData(arrayBuffer);
+    cacheBuffers.set(url, buffer);
+    return buffer;
+  }
+
+  function reproducirBuffer(buffer, ganancia) {
+    const ctx = obtenerAudioCtx();
+    const fuente = ctx.createBufferSource();
+    fuente.buffer = buffer;
+    const nodoGanancia = ctx.createGain();
+    nodoGanancia.gain.value = ganancia;
+    fuente.connect(nodoGanancia).connect(ctx.destination);
+    fuente.start();
+    return new Promise((resolve) => {
+      fuente.onended = resolve;
+    });
+  }
+
+  async function reproducirEfectoSonido(nombre) {
+    try {
+      const buffer = await cargarBuffer(`/static/sfx/${nombre}.wav`);
+      await reproducirBuffer(buffer, 1.8);
+    } catch (e) {
+      /* si falla, simplemente no suena el efecto (el sticker igual se ve) */
+    }
+  }
+
+  async function reproducirVozConDucking(url) {
     bajarMusica();
-    let yaRestaurado = false;
-    const restaurarUnaVez = () => {
-      if (yaRestaurado) return;
-      yaRestaurado = true;
+    try {
+      const buffer = await cargarBuffer(url);
+      await reproducirBuffer(buffer, 3.0);
+    } catch (e) {
+      /* si falla la voz, el texto grande ya quedó visible en pantalla */
+    } finally {
       subirMusica();
-    };
-    elementoAudio.onended = restaurarUnaVez;
-    elementoAudio.onerror = restaurarUnaVez;
-    elementoAudio.src = url;
-    elementoAudio.play().catch(restaurarUnaVez);
-    // Respaldo por si 'ended' no dispara (ej. el navegador bloqueó el play): máx. 12s con la música baja.
-    setTimeout(restaurarUnaVez, 12000);
+    }
   }
 
   function mostrarEfecto(data) {
-    if (data.sonido) {
-      sfxAudio.src = `/static/sfx/${data.sonido}.wav`;
-      sfxAudio.currentTime = 0;
-      sfxAudio.play().catch(() => {});
-    }
+    if (data.sonido) reproducirEfectoSonido(data.sonido);
     if (data.sticker) mostrarTextoGrande(data.sticker, data.texto || "", 2200);
   }
 
@@ -157,7 +196,7 @@
       const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(data.texto)}`);
       if (res.ok) {
         const { url } = await res.json();
-        reproducirConDucking(anuncioAudio, window.singpeUrl ? window.singpeUrl(url) : url);
+        await reproducirVozConDucking(window.singpeUrl ? window.singpeUrl(url) : url);
       }
     } catch (e) {
       /* el texto ya quedó visible aunque falle la voz */
@@ -242,8 +281,6 @@
     }
   }
 
-  const audioAnuncio = new Audio();
-
   async function decirMensaje(texto, emoji = "🗣️") {
     if (!texto) return;
     mostrarTextoGrande(emoji, texto, 4000);
@@ -251,7 +288,7 @@
       const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(texto)}`);
       if (!res.ok) throw new Error("tts no disponible");
       const { url } = await res.json();
-      reproducirConDucking(audioAnuncio, window.singpeUrl ? window.singpeUrl(url) : url);
+      await reproducirVozConDucking(window.singpeUrl ? window.singpeUrl(url) : url);
     } catch (e) {
       // Si falla el servicio de voz, el mensaje igual queda visible en pantalla grande.
     }
@@ -482,23 +519,6 @@
   const btnArrancar = document.getElementById("btn-arrancar");
   const CLAVE_DESBLOQUEO = "singpe_tv_desbloqueado";
 
-  // Amplificador real (Web Audio API): el <audio>/<video> normal tope en
-  // 100% de volumen, pero la voz de edge-tts y los efectos igual se sienten
-  // bajos contra la música. Esto los pasa por una ganancia que puede sonar
-  // más fuerte que el "100%" nativo del navegador.
-  let audioCtx = null;
-  function conectarConGanancia(el, ganancia) {
-    try {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const fuente = audioCtx.createMediaElementSource(el);
-      const nodoGanancia = audioCtx.createGain();
-      nodoGanancia.gain.value = ganancia;
-      fuente.connect(nodoGanancia).connect(audioCtx.destination);
-    } catch (e) {
-      /* si el navegador no soporta Web Audio API, el audio igual suena a volumen normal */
-    }
-  }
-
   function iniciarShow() {
     arranque.remove();
     try {
@@ -511,15 +531,14 @@
     // para que loadVideoById()/play() con sonido ya no se bloqueen después.
     audio.muted = false;
     video.muted = false;
-    [video, audio, sfxAudio, anuncioAudio].forEach((el) => {
+    [video, audio].forEach((el) => {
       el.play().then(() => el.pause()).catch(() => {});
     });
 
-    // La voz (mensajes, "sigues pronto", batallas) suena más floja que la
-    // música, así que le doy más ganancia que a los efectos del soundboard.
-    conectarConGanancia(audioAnuncio, 3.0);
-    conectarConGanancia(anuncioAudio, 3.0);
-    conectarConGanancia(sfxAudio, 1.8);
+    // El motor de voz/efectos (Web Audio API) también necesita arrancar
+    // dentro de este gesto real del usuario para poder sonar después.
+    const ctx = obtenerAudioCtx();
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
 
     cargarApiYoutube();
 
