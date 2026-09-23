@@ -45,7 +45,7 @@
   }
 
   function chip(s) {
-    return `<div class="glass rounded-xl px-4 py-2 text-sm whitespace-nowrap">🎵 <b>${s.cancion_titulo}</b> · Mesa ${s.mesa.numero}</div>`;
+    return `<div class="glass rounded-2xl px-6 py-3 text-xl whitespace-nowrap">🎵 <b>${s.cancion_titulo}</b> · Mesa ${s.mesa.numero}</div>`;
   }
 
   async function avanzarSiguiente() {
@@ -70,13 +70,13 @@
       .map((r, i) => {
         const insignia = i === 0 ? "🔥 Más ovacionada" : r.canciones >= 3 ? "🎤 Maratónica" : "";
         return `
-        <div class="glass rounded-xl px-4 py-2 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">${MEDALLAS[i] || "🎖️"}</span>
-            <span class="font-bold">Mesa ${r.mesa}</span>
-            ${insignia ? `<span class="text-xs text-neon-yellow">${insignia}</span>` : ""}
+        <div class="glass rounded-2xl px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-4xl">${MEDALLAS[i] || "🎖️"}</span>
+            <span class="font-bold text-2xl">Mesa ${r.mesa}</span>
+            ${insignia ? `<span class="text-base text-neon-yellow">${insignia}</span>` : ""}
           </div>
-          <div class="text-sm text-white/50">🎵 ${r.canciones} · 🔥 ${r.votos}</div>
+          <div class="text-xl text-white/60">🎵 ${r.canciones} · 🔥 ${r.votos}</div>
         </div>`;
       })
       .join("");
