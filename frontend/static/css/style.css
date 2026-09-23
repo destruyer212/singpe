@@ -17,6 +17,24 @@ body {
   opacity: 0;
 }
 
+/* El sticker de anuncios (jingle, saludos, batallas, efectos) se adapta al
+   ancho real de pantalla: en vez de un tamaño fijo que se salía de la
+   pantalla en ventanas chicas, usa clamp() para achicarse solo. */
+.sticker-emoji-responsive {
+  font-size: clamp(4rem, 18vw, 16rem);
+  line-height: 1;
+}
+.sticker-texto-responsive {
+  font-size: clamp(1.1rem, 3.2vw, 3.25rem);
+  max-width: 92vw;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.3;
+}
+.banner-batalla-responsive {
+  font-size: clamp(0.95rem, 2.6vw, 1.875rem);
+}
+
 .glass {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);

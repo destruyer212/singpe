@@ -21,6 +21,7 @@
   const ytError = document.getElementById("yt-error");
   const ytErrorLink = document.getElementById("yt-error-link");
   const infoVotos = document.getElementById("info-votos");
+  const infoVotosNum = document.getElementById("info-votos-num");
   const sfxAudio = document.getElementById("sfx-audio");
   const anuncioAudio = document.getElementById("anuncio-audio");
   const stickerOverlay = document.getElementById("sticker-overlay");
@@ -428,7 +429,7 @@
       infoMensaje.classList.add("hidden");
       infoMensaje.textContent = "";
     }
-    infoVotos.textContent = `🔥 ${s.votos_fuego || 0}`;
+    infoVotosNum.textContent = s.votos_fuego || 0;
 
     if (s.mesa_retada_numero) {
       bannerBatalla.classList.remove("hidden");
@@ -526,8 +527,8 @@
 
     if (actual.id !== solicitudActualId) cargarCancion(actual);
 
-    if (infoVotos.textContent !== `🔥 ${actual.votos_fuego || 0}`) {
-      infoVotos.textContent = `🔥 ${actual.votos_fuego || 0}`;
+    if (infoVotosNum.textContent !== String(actual.votos_fuego || 0)) {
+      infoVotosNum.textContent = actual.votos_fuego || 0;
       infoVotos.classList.add("scale-125");
       setTimeout(() => infoVotos.classList.remove("scale-125"), 200);
     }
