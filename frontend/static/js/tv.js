@@ -190,18 +190,35 @@
     if (data.sticker) mostrarTextoGrande(data.sticker, data.texto || "", 2200);
   }
 
-  async function mostrarAnuncio(data) {
-    if (!data.texto) return;
-    mostrarTextoGrande("📢", data.texto, 4000);
-    try {
-      const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(data.texto)}`);
-      if (res.ok) {
+  // ---------- Cola de voz: todo lo que habla el sistema (jingle, saludos,
+  // "sigues pronto", batallas, anuncios del DJ) sale UNO DETRÁS DE OTRO,
+  // nunca encimado. Sin esto, dos avisos que llegan casi juntos (ej. el
+  // jingle de una canción nueva + el "sigues pronto" de la siguiente mesa)
+  // se reproducían al mismo tiempo y se escuchaban chocando entre sí.
+  let colaVoz = Promise.resolve();
+  function encolarVoz(tarea) {
+    colaVoz = colaVoz.then(tarea, tarea);
+    return colaVoz;
+  }
+
+  async function hablar(texto, emoji, duracionSticker = 4000) {
+    if (!texto) return;
+    return encolarVoz(async () => {
+      mostrarTextoGrande(emoji, texto, duracionSticker);
+      try {
+        const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(texto)}`);
+        if (!res.ok) throw new Error("tts no disponible");
         const { url } = await res.json();
         await reproducirVozConDucking(window.singpeUrl ? window.singpeUrl(url) : url);
+      } catch (e) {
+        /* el texto ya quedó visible aunque falle la voz */
       }
-    } catch (e) {
-      /* el texto ya quedó visible aunque falle la voz */
-    }
+    });
+  }
+
+  async function mostrarAnuncio(data) {
+    if (!data.texto) return;
+    await hablar(data.texto, "📢", 4000);
   }
 
   let avisando = false;
@@ -283,16 +300,7 @@
   }
 
   async function decirMensaje(texto, emoji = "🗣️") {
-    if (!texto) return;
-    mostrarTextoGrande(emoji, texto, 4000);
-    try {
-      const res = await fetch(`/api/dj/tts?texto=${encodeURIComponent(texto)}`);
-      if (!res.ok) throw new Error("tts no disponible");
-      const { url } = await res.json();
-      await reproducirVozConDucking(window.singpeUrl ? window.singpeUrl(url) : url);
-    } catch (e) {
-      // Si falla el servicio de voz, el mensaje igual queda visible en pantalla grande.
-    }
+    await hablar(texto, emoji, 4000);
   }
 
   // ---------- YouTube IFrame API ----------
