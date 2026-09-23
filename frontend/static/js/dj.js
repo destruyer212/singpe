@@ -12,7 +12,11 @@
 
   function origenBadge(s) {
     if (s.youtube_video_id) {
-      return `<a href="https://youtube.com/watch?v=${s.youtube_video_id}" target="_blank" class="text-red-400 hover:underline">▶ YouTube ↗</a>`;
+      const canal = (s.cancion_artista || "").replace(/"/g, "&quot;");
+      return `<a href="https://youtube.com/watch?v=${s.youtube_video_id}" target="_blank" class="text-red-400 hover:underline">▶ YouTube ↗</a>
+        <button data-accion="reportar" data-id="${s.id}" data-video="${s.youtube_video_id}" data-canal="${canal}"
+          title="El video no es lo que dice el título (clickbait) — bloquearlo para siempre"
+          class="ml-2 text-white/30 hover:text-red-400">🚫 Reportar</button>`;
     }
     if (s.cancion_id) {
       return `<span class="text-neon-cyan">📀 Biblioteca propia</span>`;
@@ -99,6 +103,17 @@
     const { accion, id } = btn.dataset;
     if (accion === "arriba" || accion === "abajo") {
       await fetch(`/api/dj/solicitudes/${id}/mover?direccion=${accion}`, { method: "POST" });
+    } else if (accion === "reportar") {
+      const ok = confirm(
+        "¿Este video no era lo que decía el título (clickbait/canal mentiroso)?\nSe va a bloquear para siempre y se va a saltar la canción actual."
+      );
+      if (!ok) return;
+      await fetch("/api/mesas/youtube/reportar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ video_id: btn.dataset.video, canal: btn.dataset.canal || null }),
+      });
+      await api(`/api/dj/solicitudes/${id}/cancelar`);
     } else {
       await api(`/api/dj/solicitudes/${id}/${accion}`);
     }

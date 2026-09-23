@@ -17,6 +17,58 @@ from backend.config import BASE_DIR, YOUTUBE_API_KEY
 BUSQUEDA_URL = "https://www.googleapis.com/youtube/v3/search"
 BUSQUEDA_WEB_URL = "https://www.youtube.com/results"
 
+# ---------- Videos/canales bloqueados (clickbait: metadata falsa) ----------
+# Algunos canales le ponen a sus videos el título de una canción de moda
+# ("Myke Towers - Lala") pero el video real es otra cosa completamente
+# distinta (ej. un capítulo de "31 minutos"). Ni la búsqueda ni el título
+# oficial (oEmbed) delatan esto porque el propio canal mintió en el dato.
+# Por eso se guarda una lista de reportes: video_id o nombre de canal que ya
+# se comprobó que engaña, para que no vuelvan a aparecer en resultados.
+ARCHIVO_BLOQUEADOS = BASE_DIR / "youtube_bloqueados.json"
+VIDEOS_BLOQUEADOS_INICIAL = {"vXvRENPpjSI"}  # "Myke Towers - Lala" que en realidad es "31 minutos"
+CANALES_BLOQUEADOS_INICIAL = {"karaoke live"}  # canal detectado subiendo videos con título falso
+
+
+def _cargar_bloqueados() -> dict:
+    if ARCHIVO_BLOQUEADOS.exists():
+        try:
+            datos = json.loads(ARCHIVO_BLOQUEADOS.read_text(encoding="utf-8"))
+            return {
+                "videos": set(datos.get("videos", [])) | VIDEOS_BLOQUEADOS_INICIAL,
+                "canales": set(c.lower() for c in datos.get("canales", [])) | CANALES_BLOQUEADOS_INICIAL,
+            }
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            pass
+    return {"videos": set(VIDEOS_BLOQUEADOS_INICIAL), "canales": set(CANALES_BLOQUEADOS_INICIAL)}
+
+
+def reportar_video_falso(video_id: str, canal: str | None = None) -> None:
+    """Un cliente o el DJ reporta que este resultado no era lo que decía ser.
+    Queda bloqueado para siempre (video_id, y el canal si lo mandan)."""
+    video_id = (video_id or "").strip()
+    if not video_id:
+        return
+    datos = _cargar_bloqueados()
+    datos["videos"].add(video_id)
+    if canal:
+        datos["canales"].add(canal.strip().lower())
+    try:
+        ARCHIVO_BLOQUEADOS.write_text(
+            json.dumps({"videos": sorted(datos["videos"]), "canales": sorted(datos["canales"])}),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
+
+
+def _filtrar_bloqueados(resultados: list[dict]) -> list[dict]:
+    bloqueados = _cargar_bloqueados()
+    return [
+        r
+        for r in resultados
+        if r["video_id"] not in bloqueados["videos"] and (r.get("canal") or "").strip().lower() not in bloqueados["canales"]
+    ]
+
 # Cuota gratuita de YouTube Data API: 10,000 unidades/día.
 # Cada búsqueda (search.list) cuesta 100 unidades -> ~100 búsquedas/día gratis.
 COSTO_POR_BUSQUEDA = 100
@@ -179,12 +231,12 @@ def buscar_karaoke(q: str, limite: int = 8, modo: str = "karaoke") -> list[dict]
         variantes.extend([f"{q} karaoke instrumental", f"{q} karaoke sin voz"])
 
     for variante in variantes:
-        resultados = _buscar_con_api(variante, limite)
+        resultados = _filtrar_bloqueados(_buscar_con_api(variante, limite))
         if resultados:
             return resultados
 
     for variante in variantes:
-        resultados = _buscar_en_web(variante, limite)
+        resultados = _filtrar_bloqueados(_buscar_en_web(variante, limite))
         if resultados:
             return resultados
 

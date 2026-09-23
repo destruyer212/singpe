@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from backend import crud
@@ -6,7 +7,7 @@ from backend.config import YOUTUBE_API_KEY
 from backend.database import get_db
 from backend.schemas import CancionOut, SolicitudCreate, SolicitudOut
 from backend.ws_manager import manager
-from backend.youtube import buscar_karaoke, obtener_titulo_actual
+from backend.youtube import buscar_karaoke, obtener_titulo_actual, reportar_video_falso
 
 router = APIRouter(prefix="/api/mesas", tags=["mesas"])
 
@@ -28,6 +29,19 @@ def buscar_youtube(q: str, modo: str = "karaoke"):
 def titulo_actual_youtube(video_id: str):
     """Título real y actual del video (corrige nombres viejos/en caché de la búsqueda)."""
     return obtener_titulo_actual(video_id) or {}
+
+
+class ReporteVideoIn(BaseModel):
+    video_id: str
+    canal: str | None = None
+
+
+@router.post("/youtube/reportar")
+def reportar_youtube(payload: ReporteVideoIn):
+    """El video no era lo que decía ser (título falso/clickbait) — se bloquea
+    para que no vuelva a salir en ninguna búsqueda."""
+    reportar_video_falso(payload.video_id, payload.canal)
+    return {"ok": True}
 
 
 @router.get("/activas")

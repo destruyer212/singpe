@@ -9,6 +9,7 @@ frontend/static/tts_cache/*.mp3
 youtube_api_key.txt
 database_url.txt
 youtube_uso.json
+youtube_bloqueados.json
 .firecrawl/
 .claude/
 frontend_vercel_dist/
