@@ -392,7 +392,13 @@
     infoTitulo.textContent = s.cancion_titulo;
     infoArtista.textContent = s.cancion_artista || "";
     infoCantante.textContent = s.cantantes && s.cantantes.length ? s.cantantes.join(" & ") : s.nombre_cantante || "Anónimo";
-    infoMensaje.textContent = s.mensaje ? `💬 ${s.mensaje}` : "";
+    if (s.mensaje) {
+      infoMensaje.textContent = `💬 ${s.mensaje}`;
+      infoMensaje.classList.remove("hidden");
+    } else {
+      infoMensaje.classList.add("hidden");
+      infoMensaje.textContent = "";
+    }
     infoVotos.textContent = `🔥 ${s.votos_fuego || 0}`;
 
     if (s.mesa_retada_numero) {

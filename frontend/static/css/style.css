@@ -50,3 +50,36 @@ body {
   80% { opacity: 1; transform: scale(1) rotate(0deg); }
   100% { opacity: 0; transform: scale(0.9) rotate(2deg); }
 }
+
+/* Título de la canción con degradado de color en vez de blanco plano */
+.titulo-degradado {
+  background: linear-gradient(90deg, #ff2fb0, #9333ea 45%, #22d3ee 90%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: titulo-brillo 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(255, 47, 176, 0.35));
+}
+@keyframes titulo-brillo {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+/* El saludo/mensaje flota como una burbuja de chat, no una línea plana */
+.burbuja-saludo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #fde047, #fb923c);
+  color: #1a0b30;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(251, 146, 60, 0.35);
+  animation: burbuja-flotar 2.6s ease-in-out infinite;
+}
+@keyframes burbuja-flotar {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
