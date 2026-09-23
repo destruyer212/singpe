@@ -400,11 +400,22 @@
     infoTitulo.classList.remove("oculto");
   }
 
+  const FRASE_JINGLE = "Conectando momentos a través de la música… En Singpe.";
+
   function cargarCancion(s) {
     solicitudActualId = s.id;
     solicitudActualDatos = s;
     finalizando = false;
     mostrarHeaderTemporal();
+    (async () => {
+      await decirMensaje(FRASE_JINGLE, "🎤");
+      if (solicitudActualId !== s.id) return; // ya cambió de canción, no anunciar de más
+      if (s.mesa_retada_numero) {
+        await decirMensaje(`¡Batalla! Mesa ${s.mesa.numero} reta a la mesa ${s.mesa_retada_numero}. ¡Voten con el botón de fuego!`, "⚔️");
+      } else if (s.mensaje) {
+        await decirMensaje(s.mensaje, "💬");
+      }
+    })();
 
     infoMesa.textContent = s.mesa.numero;
     infoTitulo.textContent = s.cancion_titulo;
@@ -424,7 +435,6 @@
       bannerBatalla.classList.add("block");
       batallaReta.textContent = s.mesa.numero;
       batallaRetada.textContent = s.mesa_retada_numero;
-      decirMensaje(`¡Batalla! Mesa ${s.mesa.numero} reta a la mesa ${s.mesa_retada_numero}. ¡Voten con el botón de fuego!`, "⚔️");
     } else {
       bannerBatalla.classList.add("hidden");
       bannerBatalla.classList.remove("block");
@@ -467,7 +477,6 @@
       manualFondo.classList.add("flex");
     }
 
-    if (!s.mesa_retada_numero) decirMensaje(s.mensaje, "💬");
   }
 
   function actualizarLetras(tiempoActual) {
